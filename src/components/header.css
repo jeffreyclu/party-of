@@ -19,9 +19,7 @@ nav {
 }
 
 .logo {
-    width: 100%;
-    height: 50px;
-    margin-right: 10px;
+    max-height: 50px;
 }
 
 .user-info {
