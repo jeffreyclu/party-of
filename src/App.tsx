@@ -1,11 +1,19 @@
-import './App.css'
-import Login from './pages/login'
+import { BrowserRouter as Router } from 'react-router-dom';
+
+import { UserProvider } from './context/user';
+import Header from './components/header';
+import { AppRoutes } from './routes/app';
+
+import './App.css';
+
 
 export default function App() {
-  return (
-    <>
-      <h1>Welcome to Party Of</h1>
-      <Login />
-    </>
-  )
+    return (
+        <UserProvider>
+            <Router>
+                <Header />
+                <AppRoutes />
+            </Router>
+        </UserProvider>
+    );
 }
