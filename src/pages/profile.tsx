@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '../hooks/use-user';
 import { db } from '../firebase/index'; // Adjust the import as necessary
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
 import './Profile.css';
 
 const dietaryOptions = [

@@ -27,13 +27,16 @@ const Header: React.FC = () => {
                 {!loadingUser && (
                     user ? (
                         <div className="user-info">
-                            <span>{user.displayName}</span>
                             {user.photoURL ? (
-                                <img src={user.photoURL} alt={user.displayName || 'User'} className="user-photo" />
+                                <Link to="/profile">
+                                    <img src={user.photoURL} alt={user.displayName || 'User'} className="user-photo" />
+                                </Link>
                             ) : (
-                                <div className="user-initial">
-                                    {user.displayName ? getInitial(user.displayName) : 'U'}
-                                </div>
+                                <Link to="/profile">
+                                    <div className="user-initial">
+                                        {user.displayName ? getInitial(user.displayName) : 'U'}
+                                    </div>
+                                </Link>
                             )}
                             <button onClick={handleLogout}>Logout</button>
                         </div>
