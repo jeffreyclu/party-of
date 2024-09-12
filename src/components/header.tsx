@@ -4,6 +4,7 @@ import { useUser } from '../hooks/use-user';
 import logo from '../assets/temp-logo.png';
 import './header.css';
 import { useLogout } from '../hooks/use-logout';
+import { Link } from 'react-router-dom';
 
 const Header: React.FC = () => {
     const { user } = useUser();
@@ -18,7 +19,9 @@ const Header: React.FC = () => {
         <header>
             <nav>
                 <div className="logo-container">
-                    <img src={logo} alt="Logo" className="logo" />
+                    <Link to="/">
+                        <img src={logo} alt="Logo" className="logo" />
+                    </Link>
                 </div>
                 {user && (
                     <div className="user-info">
