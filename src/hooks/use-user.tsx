@@ -1,10 +1,19 @@
-import { useContext } from 'react';
-import { UserContext } from '../context/user';
+import { useState, useEffect } from 'react';
+import { auth } from '../firebase/index'; // Adjust the import as necessary
+import { User } from 'firebase/auth';
 
 export const useUser = () => {
-    const context = useContext(UserContext);
-    if (context === undefined) {
-        throw new Error('useUser must be used within a UserProvider');
-    }
-    return context;
+    const [user, setUser] = useState<User | null>(null);
+    const [loadingUser, setLoadingUser] = useState(true);
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUser(user);
+            setLoadingUser(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    return { user, loadingUser, setUser };
 };
