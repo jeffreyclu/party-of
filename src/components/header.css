@@ -24,6 +24,7 @@ span {
 
 .logo {
     max-height: 50px;
+    color: yellow;
 }
 
 .user-info {
