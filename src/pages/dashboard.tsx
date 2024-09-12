@@ -1,19 +1,21 @@
 import React from 'react';
-import { useUser } from "../hooks/use-user";
-import Map from '../components/map';
-import FavoriteRestaurants from '../components/favorites';
+import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
-    const { user } = useUser();
-
-    if (!user) {
-        return <div>Loading...</div>;
-    }
+    const handleNavigation = (path: string) => {
+        window.location.href = path;
+    };
 
     return (
         <div>
-            <Map />
-            <FavoriteRestaurants />
+            <ul>
+                <li>
+                    <button onClick={() => handleNavigation('/map')}>Add favorite restaurants</button>
+                </li>
+                <li>
+                    <Link to="/favorites">View favorites list</Link>
+                </li>
+            </ul>
         </div>
     );
 };
