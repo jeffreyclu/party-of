@@ -1,4 +1,4 @@
-import { doc, collection, addDoc, getDocs, serverTimestamp, deleteDoc } from 'firebase/firestore';
+import { doc, collection, addDoc, getDoc, getDocs, serverTimestamp, deleteDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { db } from './index';
 import { Restaurant } from '../types';
@@ -25,6 +25,15 @@ export const deleteFavoriteRestaurant = async (user: User, restaurantId: string)
   try {
     const restaurantRef = doc(db, 'users', user.uid, 'favorites', restaurantId);
     await deleteDoc(restaurantRef);
+    console.log(`Restaurant with ID ${restaurantId} removed from favorites`);
+
+    // Verify deletion
+    const docSnap = await getDoc(restaurantRef);
+    if (!docSnap.exists()) {
+      console.log(`Restaurant with ID ${restaurantId} successfully deleted`);
+    } else {
+      console.error(`Failed to delete restaurant with ID ${restaurantId}`);
+    }
   } catch (error) {
     console.error('Error removing favorite restaurant: ', error);
   }
