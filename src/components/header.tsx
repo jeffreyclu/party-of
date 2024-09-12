@@ -22,6 +22,7 @@ const Header: React.FC = () => {
                 </div>
                 {user && (
                     <div className="user-info">
+                        <span>{user.displayName}</span>
                         {user.photoURL ? (
                             <img src={user.photoURL} alt={user.displayName || 'User'} className="user-photo" />
                         ) : (
