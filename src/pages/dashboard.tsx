@@ -1,6 +1,7 @@
 import React from 'react';
 import { useUser } from "../hooks/use-user";
 import Map from '../components/map';
+import FavoriteRestaurants from '../components/favorites';
 
 const Dashboard: React.FC = () => {
     const { user } = useUser();
@@ -11,8 +12,8 @@ const Dashboard: React.FC = () => {
 
     return (
         <div>
-            <h2>Welcome, {user.displayName}</h2>
             <Map />
+            <FavoriteRestaurants />
         </div>
     );
 };
