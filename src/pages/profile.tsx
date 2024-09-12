@@ -3,6 +3,7 @@ import { useUser } from '../hooks/use-user';
 import { db } from '../firebase/index'; // Adjust the import as necessary
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import './Profile.css';
+import Loading from '../components/loading';
 
 const dietaryOptions = [
     'Peanut Allergy',
@@ -97,14 +98,8 @@ export default function Profile() {
         );
     };
 
-    const hasChangesOtherThanName = () => {
-        return (
-            JSON.stringify(dietaryRestrictions) !== JSON.stringify(originalDietaryRestrictions)
-        );
-    }
-
     if (loading) {
-        return <div>Loading...</div>;
+        return <Loading />;
     }
 
     return (
