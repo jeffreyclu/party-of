@@ -1,0 +1,23 @@
+.side-panel {
+    width: 10vw;
+    height: 70vh;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+}
+
+.close-button {
+    background-color: #ff5c5c;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.close-button:hover {
+    background-color: #ff1c1c;
+}
