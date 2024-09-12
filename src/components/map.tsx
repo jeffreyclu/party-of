@@ -1,7 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
-import { GoogleMap, LoadScript, Marker, Autocomplete, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Autocomplete } from '@react-google-maps/api';
 import { useFavoriteRestaurants } from '../hooks/use-favorite-restaurants';
+import MapMarker from './map-marker';
+import SelectedMarker from './selected-marker';
 
+import "./map.css";
+import MapPanel from './map-panel';
+import { Restaurant } from '../types';
 interface LatLng {
     lat: number;
     lng: number;
@@ -23,11 +28,11 @@ const Map: React.FC = () => {
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
     const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
-    const [activeMarker, setActiveMarker] = useState<string | null>(null);
+    const [activeRestaurant, setActiveRestaurant] = useState<Restaurant | null>(null);
     const [currentLocation, setCurrentLocation] = useState<google.maps.LatLngLiteral | null>(null);
     
     const { favoriteRestaurants, addFavoriteRestaurant, removeFavoriteRestaurant } = useFavoriteRestaurants();
-
+    
     // get the user's location
     useEffect(() => {
         if (navigator.geolocation) {
@@ -55,7 +60,8 @@ const Map: React.FC = () => {
     const handlePlaceSelected = () => {
         const place = autocompleteRef.current?.getPlace();
         if (place && place.geometry && place.geometry.location) {
-        setSelectedPlace(place);
+            setSelectedPlace(place);
+            setActiveRestaurant(null); // Close any open panel
         }
     };
 
@@ -71,38 +77,41 @@ const Map: React.FC = () => {
             };
             await addFavoriteRestaurant(newRestaurant);
             setSelectedPlace(null); // Clear the selected place after saving
+            setActiveRestaurant(null); // Close any open panel
         }
     };
 
     const removeRestaurant = async (restaurantId: string) => {
         await removeFavoriteRestaurant(restaurantId);
         setSelectedPlace(null); // Clear the selected place after removing
+        setActiveRestaurant(null); // Close any open panel
     };
     
     const isFavorite = (restaurantId: string) => {
         return favoriteRestaurants.some((restaurant) => restaurant.id === restaurantId);
     };
 
-    const handleMarkerClick = (id: string) => {
-        setActiveMarker(id);
+    const handleMarkerClick = (restaurant: Restaurant) => {
+        setActiveRestaurant(restaurant);
     };
 
-    const handleInfoWindowClose = () => {
-        setActiveMarker(null);
-    };
+    const handlePanelClose = () => {
+        setActiveRestaurant(null);
+    }
 
     return (
         <LoadScript googleMapsApiKey={apiKey} libraries={['places']}>
             <div className="map-container">
                 <Autocomplete
-                onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-                onPlaceChanged={handlePlaceSelected}
+                    onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                    onPlaceChanged={handlePlaceSelected}
+                    types={["cafe", "bakery", "meal_delivery", "meal_takeaway", "restaurant"]}
                 >
-                <input
-                    type="text"
-                    placeholder="Search for restaurants"
-                    className="autocomplete-input"
-                />
+                    <input
+                        type="text"
+                        placeholder="Search for restaurants"
+                        className="autocomplete-input"
+                    />
                 </Autocomplete>
 
                 <GoogleMap
@@ -110,47 +119,29 @@ const Map: React.FC = () => {
                     center={selectedPlace?.geometry?.location || currentLocation || defaultCenter}
                     zoom={12}
                     onLoad={(map) => {mapRef.current = map}}
+                    clickableIcons={false}
                 >
                     {selectedPlace && selectedPlace.geometry && selectedPlace.geometry.location && (
-                        <Marker position={selectedPlace.geometry.location}>
-                            <InfoWindow position={selectedPlace.geometry.location} onCloseClick={() => setSelectedPlace(null)}>
-                                <div>
-                                    <h3>{selectedPlace.name}</h3>
-                                    <p>{selectedPlace.formatted_address}</p>
-                                    {isFavorite(selectedPlace.place_id || '') ? (
-                                        <button className="save-button" onClick={() => removeRestaurant(selectedPlace.place_id || '')}>
-                                            Remove {selectedPlace.name} from Favorites
-                                        </button>
-                                    ) : (
-                                        <button className="save-button" onClick={() => saveRestaurant(selectedPlace)}>
-                                            Save {selectedPlace.name} to Favorites
-                                        </button>
-                                    )}
-                                </div>
-                            </InfoWindow>
-                        </Marker>
+                        <SelectedMarker
+                            selectedPlace={selectedPlace}
+                            isFavorite={isFavorite}
+                            removeRestaurant={removeRestaurant}
+                            saveRestaurant={saveRestaurant}
+                            onClose={() => setSelectedPlace(null)}
+                        />
                     )}
                     {favoriteRestaurants.map((restaurant) => (
-                        <Marker
-                        key={restaurant.id}
-                        position={{ lat: restaurant.lat, lng: restaurant.lng }}
-                        title={restaurant.name}
-                        onClick={() => handleMarkerClick(restaurant.id)}
-                        >
-                        {activeMarker === restaurant.id && (
-                            <InfoWindow onCloseClick={handleInfoWindowClose}>
-                                <div className="info-window">
-                                    <h3>{restaurant.name}</h3>
-                                    <p>{restaurant.address}</p>
-                                    <button className="save-button" onClick={() => removeRestaurant(restaurant.id || '')}>
-                                            Remove {restaurant.name} from Favorites
-                                    </button>
-                                </div>
-                            </InfoWindow>
-                        )}
-                        </Marker>
+                        <MapMarker
+                            key={restaurant.id}
+                            restaurant={restaurant}
+                            onMarkerClick={handleMarkerClick}
+                        />
                     ))}
+                    {activeRestaurant && (
+                        <MapPanel restaurant={activeRestaurant} onClose={handlePanelClose} removeRestaurant={removeRestaurant}/>
+                    )}
                 </GoogleMap>
+
             </div>
         </LoadScript>
     );
