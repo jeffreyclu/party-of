@@ -1,0 +1,71 @@
+.events-container {
+    padding: 20px;
+}
+
+.events-container h1 {
+    margin-bottom: 5rem;
+}
+
+.events-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 10px 0;
+}
+
+.event-card {
+    flex: 0 0 auto;
+    min-width: 10rem;
+    padding: 2rem;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-height: 15rem;
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.event-card h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.event-card p {
+    font-size: 1.1em;
+    color: #666;
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #fff;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.status-pending .status-badge {
+    background-color: blue;
+}
+
+.status-accepted .status-badge {
+    background-color: green;
+}
+
+.status-declined .status-badge {
+    background-color: red;
+}
+
+.status-unknown .status-badge {
+    background-color: gray;
+}
