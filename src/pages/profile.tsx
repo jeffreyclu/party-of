@@ -2,18 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useUser } from '../hooks/use-user';
 import { db } from '../firebase/index'; // Adjust the import as necessary
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import './Profile.css';
 import Loading from '../components/loading';
 
-const dietaryOptions = [
-    'Peanut Allergy',
-    'Dairy Intolerance',
-    'Gluten Intolerance',
-    'Celiac Disease',
-    'Shellfish Allergy',
-    'Soy Allergy',
-    'Egg Allergy',
-];
+import './profile.css';
+import { dietaryOptions } from '../consts';
 
 export default function Profile() {
     const { user } = useUser();
@@ -25,6 +17,7 @@ export default function Profile() {
     const [editDisplayName, setEditDisplayName] = useState(false);
     const [displayNameError, setDisplayNameError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -61,17 +54,28 @@ export default function Profile() {
             setDisplayNameError('Display name must be at least 3 characters long.');
             return;
         }
-        if (user) {
-            const userDocRef = doc(db, 'users', user.uid);
-            await setDoc(userDocRef, {
-                displayName,
-                dietaryRestrictions,
-            }, { merge: true });
-            setSuccessMessage('Profile updated successfully!');
-            setEditDisplayName(false); // Exit edit mode after successful save
-            setOriginalDisplayName(displayName); // Update original display name
-            setOriginalDietaryRestrictions(dietaryRestrictions); // Update original dietary restrictions
+        try {
+            setProcessing(true);
+            if (user) {
+                const userDocRef = doc(db, 'users', user.uid);
+                await setDoc(userDocRef, {
+                    displayName,
+                    dietaryRestrictions,
+                }, { merge: true });
+                setSuccessMessage('Profile updated successfully!');
+                setEditDisplayName(false); // Exit edit mode after successful save
+                setOriginalDisplayName(displayName); // Update original display name
+                setOriginalDietaryRestrictions(dietaryRestrictions); // Update original dietary restrictions
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000); // Reload the page after 1 second
+            }
+        } catch (error) {
+            console.error('Error responding to invite: ', error);
+        } finally {
+            setProcessing(false);    
         }
+        
     };
 
     const handleDisplayNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -104,7 +108,7 @@ export default function Profile() {
 
     return (
         <div className="profile-container">
-            <h2>Update Preferences</h2>
+            <h1>Update Preferences</h1>
             <form className="profile-form" onSubmit={handleSubmit}>
                 <div className="form-group">
                     <label htmlFor="displayName">Display Name</label>
@@ -119,8 +123,8 @@ export default function Profile() {
                         </div>
                     ) : (
                         <div className="inline-group">
-                            <p>{displayName}</p>
-                            <button type="button" onClick={() => setEditDisplayName(true)}>Edit</button>
+                            <h2>{displayName}</h2>
+                            <button type="button" className="edit-button" onClick={() => setEditDisplayName(true)}>Edit</button>
                         </div>
                     )}
                     {displayNameError && <p className="error">{displayNameError}</p>}
@@ -140,8 +144,8 @@ export default function Profile() {
                     ))}
                 </div>
                 <div className="button-group">
-                    <button type="submit" className="submit-button" disabled={!hasChanges() || displayName.length < 3}>Save</button>
-                    <button type="button" className="cancel-button" disabled={!hasChanges() && !editDisplayName} onClick={handleCancel}>Cancel</button>
+                    <button type="submit" className="submit-button" disabled={!hasChanges() || displayName.length < 3 || loading || processing}>Save</button>
+                    <button type="button" className="cancel-button" disabled={!hasChanges() && !editDisplayName || loading || processing} onClick={handleCancel}>Cancel</button>
                 </div>
                 {successMessage && <p className="success">{successMessage}</p>}
             </form>
