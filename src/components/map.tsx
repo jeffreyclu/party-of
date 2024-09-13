@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
-import { GoogleMap, LoadScript, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
 import { useFavoriteRestaurants } from '../hooks/use-favorite-restaurants';
 import MapMarker from './map-marker';
-import SelectedMarker from './selected-marker';
 
 import "./map.css";
 import MapPanel from './map-panel';
 import { Restaurant } from '../types';
+import Loading from './loading';
+import NotFound from '../pages/404';
 interface LatLng {
     lat: number;
     lng: number;
@@ -24,15 +25,36 @@ const defaultCenter: LatLng = {
 
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-const Map: React.FC = () => {
+interface MapProps {
+    options?: {
+        autoComplete?: boolean,
+        showFavorites?: boolean,
+    }
+}
+
+const Map: React.FC<MapProps> = ({ options }) => {
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
     const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
     const [activeRestaurant, setActiveRestaurant] = useState<Restaurant | null>(null);
     const [currentLocation, setCurrentLocation] = useState<google.maps.LatLngLiteral | null>(null);
+    const [markers, setMarkers] = useState<Restaurant[]>([]);
     
-    const { favoriteRestaurants, addFavoriteRestaurant, removeFavoriteRestaurant } = useFavoriteRestaurants();
-    
+    const { favoriteRestaurants, addFavoriteRestaurant, removeFavoriteRestaurant, loadingFavoriteRestaurants } = useFavoriteRestaurants();
+
+    console.log("loading favorite restaurants", favoriteRestaurants);
+
+    const { isLoaded: isMapLoaded, loadError: mapLoadError } = useJsApiLoader({
+        googleMapsApiKey: apiKey,
+        libraries: ['places'],
+    });
+
+    useEffect(() => {
+        if (!loadingFavoriteRestaurants) {
+            setMarkers(favoriteRestaurants);
+        }
+    }, [favoriteRestaurants, loadingFavoriteRestaurants]);
+
     // get the user's location
     useEffect(() => {
         if (navigator.geolocation) {
@@ -55,30 +77,29 @@ const Map: React.FC = () => {
         if (currentLocation && mapRef.current) {
             mapRef.current.panTo(currentLocation);
         }
-    }, [currentLocation]);
+    }, [currentLocation, isMapLoaded]);
 
     const handlePlaceSelected = () => {
         const place = autocompleteRef.current?.getPlace();
         if (place && place.geometry && place.geometry.location) {
+            const restaurant = {
+                id: place.place_id || '',
+                name: place.name || 'Unnamed Place',
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                address: place.formatted_address || '',
+                addedAt: new Date(),
+            };
+
+            setActiveRestaurant(restaurant)
             setSelectedPlace(place);
-            setActiveRestaurant(null); // Close any open panel
         }
     };
 
-    const saveRestaurant = async (restaurant: google.maps.places.PlaceResult) => {
-        if (restaurant && restaurant.geometry && restaurant.geometry.location) {
-            const newRestaurant = {
-                id: restaurant.place_id || '',
-                name: restaurant.name || 'Unnamed Place',
-                lat: restaurant.geometry.location.lat(),
-                lng: restaurant.geometry.location.lng(),
-                address: restaurant.formatted_address || '',
-                addedAt: new Date(),
-            };
-            await addFavoriteRestaurant(newRestaurant);
-            setSelectedPlace(null); // Clear the selected place after saving
-            setActiveRestaurant(null); // Close any open panel
-        }
+    const saveRestaurant = async (restaurant: Restaurant) => {
+        await addFavoriteRestaurant(restaurant);
+        setSelectedPlace(null); // Clear the selected place after saving
+        setActiveRestaurant(null); // Close any open panel
     };
 
     const removeRestaurant = async (restaurantId: string) => {
@@ -99,51 +120,63 @@ const Map: React.FC = () => {
         setActiveRestaurant(null);
     }
 
-    return (
-        <LoadScript googleMapsApiKey={apiKey} libraries={['places']}>
-            <div className="map-container">
-                <Autocomplete
-                    onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-                    onPlaceChanged={handlePlaceSelected}
-                    types={["cafe", "bakery", "meal_delivery", "meal_takeaway", "restaurant"]}
-                >
-                    <input
-                        type="text"
-                        placeholder="Search for restaurants"
-                        className="autocomplete-input"
-                    />
-                </Autocomplete>
+    if (mapLoadError) {
+        return <NotFound />;
+    }
 
-                <GoogleMap
-                    mapContainerStyle={containerStyle}
-                    center={selectedPlace?.geometry?.location || currentLocation || defaultCenter}
-                    zoom={12}
-                    onLoad={(map) => {mapRef.current = map}}
-                    clickableIcons={false}
-                >
-                    {selectedPlace && selectedPlace.geometry && selectedPlace.geometry.location && (
-                        <SelectedMarker
-                            selectedPlace={selectedPlace}
-                            isFavorite={isFavorite}
-                            removeRestaurant={removeRestaurant}
-                            saveRestaurant={saveRestaurant}
-                            onClose={() => setSelectedPlace(null)}
-                        />
-                    )}
-                    {favoriteRestaurants.map((restaurant) => (
+    if (!isMapLoaded) {
+        return <Loading />;
+    }
+
+    return (
+        <div className="map-container">
+            {options?.autoComplete && <Autocomplete
+                onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                onPlaceChanged={handlePlaceSelected}
+                types={["cafe", "bakery", "meal_delivery", "meal_takeaway", "restaurant"]}
+            >
+                <input
+                    type="text"
+                    placeholder="Search for restaurants"
+                    className="autocomplete-input"
+                />
+            </Autocomplete>}
+
+            <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={selectedPlace?.geometry?.location || currentLocation || defaultCenter}
+                zoom={12}
+                onLoad={(map) => {mapRef.current = map}}
+                clickableIcons={false}
+            >
+                {
+                    activeRestaurant && (
                         <MapMarker
-                            key={restaurant.id}
-                            restaurant={restaurant}
+                            key={activeRestaurant.id}
+                            restaurant={activeRestaurant}
                             onMarkerClick={handleMarkerClick}
                         />
-                    ))}
-                    {activeRestaurant && (
-                        <MapPanel restaurant={activeRestaurant} onClose={handlePanelClose} removeRestaurant={removeRestaurant}/>
-                    )}
-                </GoogleMap>
-
-            </div>
-        </LoadScript>
+                    )
+                }
+                {options?.showFavorites && markers.map((restaurant) => (
+                    <MapMarker
+                        key={restaurant.id}
+                        restaurant={restaurant}
+                        onMarkerClick={handleMarkerClick}
+                        opacity={0.5}
+                    />
+                ))}
+                {activeRestaurant && (
+                    <MapPanel 
+                        restaurant={activeRestaurant} 
+                        onClose={handlePanelClose} 
+                        removeRestaurant={removeRestaurant}
+                        isFavorite={isFavorite}
+                        saveRestaurant={saveRestaurant}
+                    />
+                )}
+            </GoogleMap>
+        </div>
     );
 };
 
