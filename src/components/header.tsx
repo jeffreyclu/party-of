@@ -16,6 +16,8 @@ const Header: React.FC = () => {
         return name.charAt(0).toUpperCase();
     };
 
+    // TODO: figure out how to get all header items vertically aligned
+    // TODO: add dropdown menu for user profile
     return (
         <header>
             <nav>
