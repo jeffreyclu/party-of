@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../hooks/use-user';
-import { db } from '../firebase/index'; // Adjust the import as necessary
-import { doc, getDoc, setDoc } from 'firebase/firestore';
 import Loading from '../components/loading';
 
 import './profile.css';
 import { dietaryOptions } from '../consts';
+import { getUserProfile, updateUserProfile } from '../firebase/user-functions';
 
 export default function Profile() {
     const { user } = useUser();
@@ -19,17 +18,16 @@ export default function Profile() {
     const [successMessage, setSuccessMessage] = useState('');
     const [processing, setProcessing] = useState(false);
 
+    // fetch user profile data from db
     useEffect(() => {
         if (user) {
             const fetchUserProfile = async () => {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    setDisplayName(userData.displayName || user.displayName || '');
-                    setOriginalDisplayName(userData.displayName || user.displayName || '');
-                    setDietaryRestrictions(userData.dietaryRestrictions || []);
-                    setOriginalDietaryRestrictions(userData.dietaryRestrictions || []);
+                const profileData = await getUserProfile(user.uid);
+                if (profileData) {
+                    setDisplayName(profileData.displayName || user.displayName || '');
+                    setOriginalDisplayName(profileData.displayName || user.displayName || '');
+                    setDietaryRestrictions(profileData.dietaryRestrictions || []);
+                    setOriginalDietaryRestrictions(profileData.dietaryRestrictions || []);
                 } else {
                     setDisplayName(user.displayName || '');
                     setOriginalDisplayName(user.displayName || '');
@@ -57,11 +55,7 @@ export default function Profile() {
         try {
             setProcessing(true);
             if (user) {
-                const userDocRef = doc(db, 'users', user.uid);
-                await setDoc(userDocRef, {
-                    displayName,
-                    dietaryRestrictions,
-                }, { merge: true });
+                await updateUserProfile(user.uid, displayName, dietaryRestrictions);
                 setSuccessMessage('Profile updated successfully!');
                 setEditDisplayName(false); // Exit edit mode after successful save
                 setOriginalDisplayName(displayName); // Update original display name
