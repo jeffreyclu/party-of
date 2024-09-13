@@ -8,6 +8,7 @@ import MapPanel from './map-panel';
 import { Restaurant } from '../types';
 import Loading from './loading';
 import NotFound from '../pages/404';
+import { serverTimestamp } from 'firebase/firestore';
 interface LatLng {
     lat: number;
     lng: number;
@@ -41,8 +42,6 @@ const Map: React.FC<MapProps> = ({ options }) => {
     const [markers, setMarkers] = useState<Restaurant[]>([]);
     
     const { favoriteRestaurants, addFavoriteRestaurant, removeFavoriteRestaurant, loadingFavoriteRestaurants } = useFavoriteRestaurants();
-
-    console.log("loading favorite restaurants", favoriteRestaurants);
 
     const { isLoaded: isMapLoaded, loadError: mapLoadError } = useJsApiLoader({
         googleMapsApiKey: apiKey,
@@ -88,7 +87,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
                 lat: place.geometry.location.lat(),
                 lng: place.geometry.location.lng(),
                 address: place.formatted_address || '',
-                addedAt: new Date(),
+                addedAt: serverTimestamp(),
             };
 
             setActiveRestaurant(restaurant)
