@@ -4,7 +4,10 @@ export interface UserProfile {
     id: string;
     displayName: string;
     dietaryRestrictions: DietaryOptions[];
+    email: string;
     favorites: Favorite[];
+    completedIntro: boolean;
+    createdAt: FieldValue;
 }
 
 export interface Favorite {
@@ -17,7 +20,7 @@ export interface Restaurant {
     lat: number;
     lng: number;
     address: string;
-    addedAt: Date;
+    addedAt: FieldValue;
 }
 
 export interface Invite {
