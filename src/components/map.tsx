@@ -39,7 +39,6 @@ interface MapProps {
 const Map: React.FC<MapProps> = ({ options }) => {
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
-    const [selectedPlace, setSelectedPlace] = useState<google.maps.places.PlaceResult | null>(null);
     const [activeRestaurant, setActiveRestaurant] = useState<Restaurant | null>(null);
     const [currentLocation, setCurrentLocation] = useState<google.maps.LatLngLiteral | null>(null);
     const [markers, setMarkers] = useState<Restaurant[]>([]);
@@ -61,19 +60,26 @@ const Map: React.FC<MapProps> = ({ options }) => {
     // get the user's location
     useEffect(() => {
         if (navigator.geolocation) {
+            showToast('Fetching your location...', ToastType.Info);
             navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setCurrentLocation({
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                });
-            },
-            (error) => {
-                showToast('Error getting user location', ToastType.Error);
-            }
+                (position) => {
+                    setCurrentLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                    showToast('Centering map on your location', ToastType.Success);
+                },
+                (error) => {
+                    showToast(error.message, ToastType.Error);
+                },
+                {
+                    timeout: 5000, // Set a timeout of 5 seconds
+                }
             );
+        } else {
+            showToast('Geolocation is not supported by this browser.', ToastType.Error);
         }
-    }, []);
+    }, [showToast]);
 
     // center the map on the user's location if we have it
     useEffect(() => {
@@ -95,20 +101,19 @@ const Map: React.FC<MapProps> = ({ options }) => {
             };
 
             setActiveRestaurant(restaurant)
-            setSelectedPlace(place);
         }
     };
 
     const saveRestaurant = async (restaurant: Restaurant) => {
         await addFavoriteRestaurant(restaurant);
-        setSelectedPlace(null); // Clear the selected place after saving
-        setActiveRestaurant(null); // Close any open panel
+        showToast('Restaurant saved to favorites', ToastType.Success);
+        setActiveRestaurant(null);
     };
 
     const removeRestaurant = async (restaurantId: string) => {
         await removeFavoriteRestaurant(restaurantId);
-        setSelectedPlace(null); // Clear the selected place after removing
-        setActiveRestaurant(null); // Close any open panel
+        showToast('Restaurant removed from favorites', ToastType.Success);
+        setActiveRestaurant(null);
     };
     
     const isFavorite = (restaurantId: string) => {
@@ -147,7 +152,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
 
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={selectedPlace?.geometry?.location || currentLocation || defaultCenter}
+                center={activeRestaurant && {lat: activeRestaurant.lat, lng: activeRestaurant.lng} || currentLocation || defaultCenter}
                 zoom={12}
                 onLoad={(map) => {mapRef.current = map}}
                 clickableIcons={false}
