@@ -24,12 +24,9 @@ export const createUserProfile = async (user: User) => {
     }
 };
 
-export const updateUserProfile = async (uid: string, displayName: string, dietaryRestrictions: string[]) => {
+export const updateUserProfile = async (uid: string, userProfileData: UserProfile) => {
     const userDocRef = doc(db, 'users', uid);
-    await setDoc(userDocRef, {
-        displayName,
-        dietaryRestrictions,
-    }, { merge: true });
+    await setDoc(userDocRef, userProfileData, { merge: true });
 };
 
 export const getUserProfile = async (id: string) => {
