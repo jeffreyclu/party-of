@@ -8,16 +8,19 @@ import { FavoriteRestaurantsProvider } from './context/restaurants.tsx'
 import { AppRoutes } from './routes/app.tsx'
 
 import './index.css'
+import { ToastProvider } from './context/toast.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <FavoriteRestaurantsProvider>
-            <InviteProvider>
-                <Router>
-                    <Header />
-                    <AppRoutes />
-                </Router>
+    <ToastProvider>
+      <FavoriteRestaurantsProvider>
+          <InviteProvider>
+              <Router>
+                  <Header />
+                  <AppRoutes />
+              </Router>
             </InviteProvider>
         </FavoriteRestaurantsProvider>
+    </ToastProvider>
   </StrictMode>,
 )
