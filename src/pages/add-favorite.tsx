@@ -8,11 +8,13 @@ import { useUser } from "../hooks/use-user";
 import Loading from "../components/loading";
 
 import './add-favorite.css';
+
 export default function AddFavorites () {
     const { favoriteRestaurants } = useFavoriteRestaurants();
     const { user, loadingUser } = useUser();
     const { userProfileData, updateUserProfile, loadingUserProfileData } = useUserProfile(user);
     const navigate = useNavigate();
+
     
     const [newUser, setNewUser] = useState(false);
     const [canContinue, setCanContinue] = useState(false);
