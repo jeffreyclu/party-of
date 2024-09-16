@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import Map from "../components/map"
 import { useFavoriteRestaurants } from "../hooks/use-favorite-restaurants";
-import useUserProfile from "../hooks/use-user-profile";
+import { useUserProfile } from "../hooks/use-user-profile";
 import { useUser } from "../hooks/use-user";
 import Loading from "../components/loading";
 
@@ -12,10 +11,8 @@ import './add-favorite.css';
 export default function AddFavorites () {
     const { favoriteRestaurants } = useFavoriteRestaurants();
     const { user, loadingUser } = useUser();
-    const { userProfileData, updateUserProfile, loadingUserProfileData } = useUserProfile(user);
-    const navigate = useNavigate();
+    const { userProfileData, updateUserProfile, loadingUserProfileData } = useUserProfile();
 
-    
     const [newUser, setNewUser] = useState(false);
     const [canContinue, setCanContinue] = useState(false);
 
@@ -29,11 +26,12 @@ export default function AddFavorites () {
         setCanContinue(favoriteRestaurants.length >= 5);
     }, [favoriteRestaurants]);
 
+
     const handleContinue = () => {
-        if (userProfileData) {
+        if (userProfileData && !userProfileData.completedIntro) {
             updateUserProfile({ ...userProfileData, completedIntro: true });
+            window.location.href = '/dashboard';
         }
-        navigate('/dashboard');
     };
 
     if (loadingUser || loadingUserProfileData) {
