@@ -1,31 +1,31 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useFavoriteRestaurants } from '../hooks/use-favorite-restaurants';
-import './dashboard.css'; // Import the CSS file
+import { useUser } from '../hooks/use-user';
+import useUserProfile from '../hooks/use-user-profile';
 import Loading from '../components/loading';
+import { useFavoriteRestaurants } from '../hooks/use-favorite-restaurants';
 
-const MIN_FAVORITES = 5;
+import './dashboard.css';
 
 const Dashboard: React.FC = () => {
-    const { favoriteRestaurants, loadingFavoriteRestaurants } = useFavoriteRestaurants();
+    const { loadingFavoriteRestaurants } = useFavoriteRestaurants();
+    const { user, loadingUser } = useUser();
+    const { userProfileData, loadingUserProfileData } = useUserProfile(user);
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!loadingFavoriteRestaurants && favoriteRestaurants.length < MIN_FAVORITES) {
+        if (user && userProfileData && !userProfileData.completedIntro) {
             navigate('/favorites/add');
         }
-    }, [navigate, favoriteRestaurants, loadingFavoriteRestaurants]);
+    }, [user, userProfileData, navigate]);
 
-    if (loadingFavoriteRestaurants) {
+    if (loadingUser || loadingUserProfileData || loadingFavoriteRestaurants) {
         return <Loading />;
-    }
-
-    if (!loadingFavoriteRestaurants && favoriteRestaurants.length < MIN_FAVORITES) {
-        return null; // Render nothing while redirecting
     }
 
     return (
         <div className="dashboard-container">
+            <h1>Welcome {user?.displayName}</h1>
             <div className="card-grid">
                 <div className="card">
                     <a href="/favorites/add">Add favorite restaurants</a>
