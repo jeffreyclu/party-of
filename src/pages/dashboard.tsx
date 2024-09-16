@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../hooks/use-user';
-import useUserProfile from '../hooks/use-user-profile';
+import { useUserProfile } from '../hooks/use-user-profile';
 import Loading from '../components/loading';
 import { useFavoriteRestaurants } from '../hooks/use-favorite-restaurants';
 
@@ -10,14 +10,14 @@ import './dashboard.css';
 const Dashboard: React.FC = () => {
     const { loadingFavoriteRestaurants } = useFavoriteRestaurants();
     const { user, loadingUser } = useUser();
-    const { userProfileData, loadingUserProfileData } = useUserProfile(user);
+    const { userProfileData, loadingUserProfileData } = useUserProfile();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user && userProfileData && !userProfileData.completedIntro) {
+        if (!loadingUser && user && !loadingUserProfileData && userProfileData && !userProfileData.completedIntro) {
             navigate('/favorites/add');
         }
-    }, [user, userProfileData, navigate]);
+    }, [loadingUser, user, loadingUserProfileData, userProfileData, navigate]);
 
     if (loadingUser || loadingUserProfileData || loadingFavoriteRestaurants) {
         return <Loading />;
