@@ -37,6 +37,16 @@
     font-size: 1rem;
 }
 
+.checkbox-flex {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    max-height: 50vh;
+    gap: 10px;
+}
+
+
 .checkbox-group {
     display: flex;
     align-items: center;
@@ -79,19 +89,6 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.875rem;
-}
-
-.error {
-    color: red;
-    font-size: 12px;
-    margin-top: 5px;
-}
-
-.success {
-    color: green;
-    font-size: 14px;
-    margin-top: 10px;
-    text-align: center;
 }
 
 .profile-form button {
