@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 import Loading from '../components/loading';
 import { useUser } from '../hooks/use-user';
-import useUserProfile from '../hooks/use-user-profile';
+import { useUserProfile } from '../hooks/use-user-profile';
 import { DietaryOptions, ToastType } from '../types';
 import { useToast } from '../hooks/use-toast';
 
@@ -10,7 +10,7 @@ import './profile.css';
 
 export default function Profile() {
     const { user } = useUser();
-    const { userProfileData, loadingUserProfileData, updateUserProfile } = useUserProfile(user);
+    const { userProfileData, loadingUserProfileData, updateUserProfile } = useUserProfile();
     const { showToast } = useToast();
     
     const [displayName, setDisplayName] = useState('');

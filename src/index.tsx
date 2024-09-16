@@ -9,18 +9,24 @@ import { AppRoutes } from './routes/app.tsx'
 
 import './index.css'
 import { ToastProvider } from './context/toast.tsx'
+import { UserProfileProvider } from './context/user-profile.tsx'
+import { UserProvider } from './context/user.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastProvider>
-      <FavoriteRestaurantsProvider>
-          <InviteProvider>
-              <Router>
-                  <Header />
-                  <AppRoutes />
-              </Router>
-            </InviteProvider>
-        </FavoriteRestaurantsProvider>
+      <UserProvider>
+        <UserProfileProvider>
+            <FavoriteRestaurantsProvider>
+              <InviteProvider>
+                <Router>
+                    <Header />
+                    <AppRoutes />
+                </Router>
+              </InviteProvider>
+            </FavoriteRestaurantsProvider>
+        </UserProfileProvider>
+      </UserProvider>
     </ToastProvider>
   </StrictMode>,
 )
