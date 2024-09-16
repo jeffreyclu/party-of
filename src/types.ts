@@ -80,3 +80,9 @@ export enum ToastType {
     Error = 'Error',
     Info = 'Info',
 }
+
+export interface ToastMessage {
+    message: string;
+    type: ToastType;
+    duration: number;
+}

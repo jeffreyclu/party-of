@@ -1,6 +1,6 @@
-import { createContext, useState, useCallback } from 'react';
+import { createContext, useState, useCallback, useEffect } from 'react';
 import Toast from '../components/toast';
-import { ToastType } from '../types';
+import { ToastMessage, ToastType } from '../types';
 
 interface ToastContextProps {
     showToast: (message: string, type: ToastType, duration?: number) => void;
@@ -9,20 +9,33 @@ interface ToastContextProps {
 export const ToastContext = createContext<ToastContextProps | undefined>(undefined);
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [toastMessage, setToastMessage] = useState<string | null>(null);
-    const [toastType, setToastType] = useState<ToastType>(ToastType.Info);
-    const [toastDuration, setToastDuration] = useState<number>(3000);
+    const [toastQueue, setToastQueue] = useState<ToastMessage[]>([]);
+    const [currentToast, setCurrentToast] = useState<ToastMessage | null>(null);
 
-    const showToast = useCallback((message: string, type: ToastType, duration: number = 3000) => {
-        setToastMessage(message);
-        setToastType(type);
-        setToastDuration(duration);
+    const showToast = useCallback((message: string, type: ToastType, duration: number = 1000) => {
+        setToastQueue(prevQueue => [...prevQueue, { message, type, duration }]);
     }, []);
+
+    useEffect(() => {
+        if (!currentToast && toastQueue.length > 0) {
+            setCurrentToast(toastQueue[0]);
+            setToastQueue(prevQueue => prevQueue.slice(1));
+        }
+    }, [currentToast, toastQueue]);
+
+    useEffect(() => {
+        if (currentToast) {
+            const timer = setTimeout(() => {
+                setCurrentToast(null);
+            }, currentToast.duration);
+            return () => clearTimeout(timer);
+        }
+    }, [currentToast]);
 
     return (
         <ToastContext.Provider value={{ showToast }}>
             {children}
-            {toastMessage && <Toast message={toastMessage} type={toastType} duration={toastDuration} />}
+            {currentToast && <Toast message={currentToast.message} type={currentToast.type} duration={currentToast.duration} />}
         </ToastContext.Provider>
     );
 };
