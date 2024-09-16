@@ -1,5 +1,5 @@
 import {  Marker } from "@react-google-maps/api";
-import { Restaurant } from "../types";
+import { Restaurant } from "../../types";
 
 import "./map.css"
 

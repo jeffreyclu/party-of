@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import Map from "../components/map"
+import Map from "../components/map/map"
 import { useFavoriteRestaurants } from "../hooks/use-favorite-restaurants";
 import { useUserProfile } from "../hooks/use-user-profile";
 import { useUser } from "../hooks/use-user";
