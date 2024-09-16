@@ -1,12 +1,26 @@
-import { Timestamp } from "firebase/firestore";
+import { FieldValue, Timestamp } from "firebase/firestore";
 
+export interface UserProfile {
+    id: string;
+    displayName: string;
+    dietaryRestrictions: DietaryOptions[];
+    email: string;
+    favorites: Favorite[];
+    completedIntro: boolean;
+    createdAt: FieldValue;
+}
+
+export interface Favorite {
+    restaurantId: string;
+    addedAt: FieldValue;
+}
 export interface Restaurant {
     id: string;
     name: string;
     lat: number;
     lng: number;
     address: string;
-    addedAt: Date;
+    addedAt: FieldValue;
 }
 
 export interface Invite {
@@ -32,4 +46,37 @@ export enum EventType {
     Dinner = 'Dinner',
     Drinks = 'Drinks',
     Other = 'Other',
+}
+
+export enum DietaryOptions {
+    PeanutAllergy = 'Peanut Allergy',
+    TreeNutAllergy = 'Tree Nut Allergy',
+    DairyIntolerance = 'Dairy Intolerance',
+    GlutenIntolerance = 'Gluten Intolerance',
+    CeliacDisease = 'Celiac Disease',
+    ShellfishAllergy = 'Shellfish Allergy',
+    SoyAllergy = 'Soy Allergy',
+    EggAllergy = 'Egg Allergy',
+    FishAllergy = 'Fish Allergy',
+    WheatAllergy = 'Wheat Allergy',
+    CornAllergy = 'Corn Allergy',
+    SesameAllergy = 'Sesame Allergy',
+    LupinAllergy = 'Lupin Allergy',
+    MustardAllergy = 'Mustard Allergy',
+    SulfiteSensitivity = 'Sulfite Sensitivity',
+    FructoseIntolerance = 'Fructose Intolerance',
+    LactoseIntolerance = 'Lactose Intolerance',
+    Vegetarian = 'Vegetarian',
+    Vegan = 'Vegan',
+    Pescatarian = 'Pescatarian',
+    Keto = 'Keto',
+    Paleo = 'Paleo',
+    Halal = 'Halal',
+    Kosher = 'Kosher',
+}
+
+export enum ToastType {
+    Success = 'Success',
+    Error = 'Error',
+    Info = 'Info',
 }

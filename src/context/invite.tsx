@@ -1,6 +1,8 @@
 import { createContext, useState, ReactNode } from 'react';
+
 import { getInviteById, getInvitesByHost, getInvitesByRecipient } from '../firebase/invite-functions';
-import { Invite } from '../types';
+import { Invite, ToastType } from '../types';
+import { useToast } from '../hooks/use-toast';
 
 interface InviteContextType {
     invite: Invite | null;
@@ -24,10 +26,12 @@ export const InviteProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const [loadingHostInvites, setLoadingHostInvites] = useState<boolean>(false);
     const [loadingRecipientInvites, setLoadingRecipientInvites] = useState<boolean>(false);
 
+    const { showToast } = useToast();
+
     const fetchInviteById = async (inviteId: string) => {
         setLoadingInvite(true);
         if (!inviteId) {
-            console.error('No invite ID provided');
+            showToast('No invite ID provided', ToastType.Error);
             setInvite(null);
             setLoadingInvite(false);
             return;
@@ -37,7 +41,7 @@ export const InviteProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const inviteData = await getInviteById(inviteId);
             setInvite(inviteData as Invite);
         } catch (error) {
-            console.error('Error fetching invite:', error);
+            showToast((error as Error).message, ToastType.Error);
             setInvite(null);
         } finally {
             setLoadingInvite(false);
@@ -50,7 +54,7 @@ export const InviteProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const invites = await getInvitesByHost(userId);
             setHostInvites(invites);
         } catch (error) {
-            console.error('Error fetching host invites:', error);
+            showToast((error as Error).message, ToastType.Error);
             setHostInvites([]);
         } finally {
             setLoadingHostInvites(false);
@@ -63,7 +67,7 @@ export const InviteProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             const invites = await getInvitesByRecipient(userId);
             setRecipientInvites(invites);
         } catch (error) {
-            console.error('Error fetching recipient invites:', error);
+            showToast((error as Error).message, ToastType.Error);
             setRecipientInvites([]);
         } finally {
             setLoadingRecipientInvites(false);

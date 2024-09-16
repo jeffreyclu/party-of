@@ -1,8 +1,10 @@
 import { useState } from 'react';
+
 import { createInvite } from '../firebase/invite-functions';
 import Loading from '../components/loading';
 import { useUser } from '../hooks/use-user';
-import { EventType } from '../types';
+import { EventType, ToastType } from '../types';
+import { useToast } from '../hooks/use-toast';
 
 import './create-invite.css';
 
@@ -16,6 +18,8 @@ const CreateInvite: React.FC = () => {
     const [eventTime, setEventTime] = useState<string>(formattedTime);
     const [eventType, setEventType] = useState<EventType>(EventType.Lunch);
 
+    const { showToast } = useToast();
+
     if (!user) {
         return <Loading />;
     }
@@ -23,22 +27,21 @@ const CreateInvite: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!eventDate || !eventTime || !eventType) {
-            alert('Please fill in all fields');
+            showToast('Please fill out all fields', ToastType.Error);
             return;
         }
         const dateTime = new Date(`${eventDate}T${eventTime}`);
         if (dateTime < new Date()) {
-            alert('Please select a future date and time');
+            showToast('Please select a future date and time', ToastType.Error);
             return;
         }
         try {
             const dateTime = new Date(`${eventDate}T${eventTime}`);
             const inviteId = await createInvite(user.uid, dateTime, eventType);
-            alert('Invite created successfully');
+            showToast('Invite created successfully!', ToastType.Success);
             window.location.href = `/invite/${inviteId}`;
         } catch (error) {
-            console.error('Error creating invite:', error);
-            alert('Failed to create invite');
+            showToast((error as Error).message, ToastType.Error);
         }
     };
 

@@ -1,24 +1,27 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+
 import Loading from '../components/loading';
 import NotFound from '../pages/404';
 import { useInvite } from '../hooks/use-invite';
 import { useUser } from '../hooks/use-user';
-import { InviteStatus } from '../types';
+import { InviteStatus, ToastType } from '../types';
 import { respondToInvite } from '../firebase/invite-functions';
+import useRestaurant from '../hooks/use-restaurant';
+import { useToast } from '../hooks/use-toast';
 
 import './invite.css';
-import useRestaurant from '../hooks/use-restaurant';
 
 export default function Invite() {
     
     const { invite, loadingInvite, fetchInviteById } = useInvite();
     const { inviteId } = useParams<{ inviteId: string }>();
     const { user } = useUser();
+    const { showToast } = useToast();
+
     const [hasFetchedInvite, setHasFetchedInvite] = useState(false);
     const [loading, setLoading] = useState(false);
     const [changingRsvp, setChangingRsvp] = useState(false);
-    const [statusMessage, setStatusMessage] = useState('');
 
     const [suggestedRestaurantId, setSuggestedRestaurantId] = useState<string | undefined>(undefined);
 
@@ -58,14 +61,13 @@ export default function Invite() {
         setLoading(true);
         try {
             await respondToInvite(invite.id, user.uid, status);
-            setStatusMessage('RSVP updated successfully');
+            showToast('RSVP updated successfully!', ToastType.Success);
             setTimeout(() => {
                 window.location.reload();
                 setLoading(false);
             }, 1000); // Reload the page after 1 second
         } catch (error) {
-            console.error('Error responding to invite: ', error);
-            setStatusMessage('Failed to update RSVP');
+            showToast((error as Error).message, ToastType.Error);
         }
     };
 
@@ -127,7 +129,6 @@ export default function Invite() {
                     )}
                 </div>
             )}
-            {statusMessage && <p className="success">{statusMessage}</p>}
         </div>
     );
 }

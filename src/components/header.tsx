@@ -20,7 +20,7 @@ const Header: React.FC = () => {
     // TODO: add dropdown menu for user profile
     return (
         <header>
-            <nav>
+            <nav className="header">
                 <div className="logo-container">
                     <Link to="/">
                         <img src={logo} alt="Party Of Logo" className="logo" />

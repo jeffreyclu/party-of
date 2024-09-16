@@ -1,46 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { useUser } from '../hooks/use-user';
-import { db } from '../firebase/index'; // Adjust the import as necessary
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
+
 import Loading from '../components/loading';
+import { useUser } from '../hooks/use-user';
+import useUserProfile from '../hooks/use-user-profile';
+import { DietaryOptions, ToastType } from '../types';
+import { useToast } from '../hooks/use-toast';
 
 import './profile.css';
-import { dietaryOptions } from '../consts';
 
 export default function Profile() {
     const { user } = useUser();
+    const { userProfileData, loadingUserProfileData, updateUserProfile } = useUserProfile(user);
+    const { showToast } = useToast();
+    
     const [displayName, setDisplayName] = useState('');
     const [originalDisplayName, setOriginalDisplayName] = useState('');
-    const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
-    const [originalDietaryRestrictions, setOriginalDietaryRestrictions] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [dietaryRestrictions, setDietaryRestrictions] = useState<DietaryOptions[]>([]);
+    const [originalDietaryRestrictions, setOriginalDietaryRestrictions] = useState<DietaryOptions[]>([]);
     const [editDisplayName, setEditDisplayName] = useState(false);
     const [displayNameError, setDisplayNameError] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
     const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            const fetchUserProfile = async () => {
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    setDisplayName(userData.displayName || user.displayName || '');
-                    setOriginalDisplayName(userData.displayName || user.displayName || '');
-                    setDietaryRestrictions(userData.dietaryRestrictions || []);
-                    setOriginalDietaryRestrictions(userData.dietaryRestrictions || []);
-                } else {
-                    setDisplayName(user.displayName || '');
-                    setOriginalDisplayName(user.displayName || '');
-                }
-                setLoading(false);
-            };
-            fetchUserProfile();
+        if (userProfileData) {
+            setDisplayName(userProfileData.displayName);
+            setOriginalDisplayName(userProfileData.displayName);
+            setDietaryRestrictions(userProfileData.dietaryRestrictions);
+            setOriginalDietaryRestrictions(userProfileData.dietaryRestrictions);
         }
-    }, [user]);
+    }, [userProfileData]);
 
-    const handleCheckboxChange = (restriction: string) => {
+    const handleCheckboxChange = (restriction: DietaryOptions) => {
         setDietaryRestrictions((prev) =>
             prev.includes(restriction)
                 ? prev.filter((item) => item !== restriction)
@@ -56,13 +46,9 @@ export default function Profile() {
         }
         try {
             setProcessing(true);
-            if (user) {
-                const userDocRef = doc(db, 'users', user.uid);
-                await setDoc(userDocRef, {
-                    displayName,
-                    dietaryRestrictions,
-                }, { merge: true });
-                setSuccessMessage('Profile updated successfully!');
+            if (user && userProfileData) {
+                await updateUserProfile({...userProfileData, displayName, dietaryRestrictions});
+                showToast('Profile updated successfully!', ToastType.Success);
                 setEditDisplayName(false); // Exit edit mode after successful save
                 setOriginalDisplayName(displayName); // Update original display name
                 setOriginalDietaryRestrictions(dietaryRestrictions); // Update original dietary restrictions
@@ -71,7 +57,7 @@ export default function Profile() {
                 }, 1000); // Reload the page after 1 second
             }
         } catch (error) {
-            console.error('Error responding to invite: ', error);
+            showToast((error as Error).message, ToastType.Error);
         } finally {
             setProcessing(false);    
         }
@@ -102,7 +88,7 @@ export default function Profile() {
         );
     };
 
-    if (loading) {
+    if (loadingUserProfileData && !processing) {
         return <Loading />;
     }
 
@@ -131,23 +117,24 @@ export default function Profile() {
                 </div>
                 <div className="form-group">
                     <label>Dietary Restrictions</label>
-                    {dietaryOptions.map((option) => (
-                        <div key={option} className="checkbox-group">
-                            <input
-                                type="checkbox"
-                                id={option}
-                                checked={dietaryRestrictions.includes(option)}
-                                onChange={() => handleCheckboxChange(option)}
-                            />
-                            <label htmlFor={option} className="checkbox-label">{option}</label>
-                        </div>
-                    ))}
+                    <div className="checkbox-flex">
+                        {Object.values(DietaryOptions).map((option) => (
+                            <div key={option} className="checkbox-group">
+                                <input
+                                    type="checkbox"
+                                    id={option}
+                                    checked={dietaryRestrictions.includes(option)}
+                                    onChange={() => handleCheckboxChange(option)}
+                                />
+                                <label htmlFor={option} className="checkbox-label">{option}</label>
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <div className="button-group">
-                    <button type="submit" className="submit-button" disabled={!hasChanges() || displayName.length < 3 || loading || processing}>Save</button>
-                    <button type="button" className="cancel-button" disabled={!hasChanges() && !editDisplayName || loading || processing} onClick={handleCancel}>Cancel</button>
+                    <button type="submit" className="submit-button" disabled={!hasChanges() || displayName.length < 3 || loadingUserProfileData || processing}>Save</button>
+                    <button type="button" className="cancel-button" disabled={!hasChanges() && !editDisplayName || loadingUserProfileData || processing} onClick={handleCancel}>Cancel</button>
                 </div>
-                {successMessage && <p className="success">{successMessage}</p>}
             </form>
         </div>
     );

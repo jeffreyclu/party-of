@@ -1,19 +1,22 @@
 nav {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e0e0e0;
-    position: fixed;
-    top: 0;
-    left: 0;
+    padding: 1rem 2rem;
     z-index: 1000;
     box-sizing: border-box;
 }
 
-span {
+.header {
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: space-between;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    height: 5rem;
+}
+
+.header span {
     padding: 1em;
 }
 
