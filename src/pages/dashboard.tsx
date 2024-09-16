@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="dashboard-container">
-            <h1>Welcome {user?.displayName}</h1>
+            <h1>Welcome {userProfileData?.displayName}</h1>
             <div className="card-grid">
                 <div className="card">
                     <a href="/favorites/add">Add favorite restaurants</a>
