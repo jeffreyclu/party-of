@@ -1,14 +1,17 @@
 import { useEffect, useState, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
-import { useFavoriteRestaurants } from '../hooks/use-favorite-restaurants';
-import MapMarker from './map-marker';
 
-import "./map.css";
+import MapMarker from './map-marker';
 import MapPanel from './map-panel';
-import { Restaurant } from '../types';
+import { Restaurant, ToastType } from '../types';
 import Loading from './loading';
 import NotFound from '../pages/404';
 import { serverTimestamp } from 'firebase/firestore';
+import { useToast } from '../hooks/use-toast';
+import { useFavoriteRestaurants } from '../hooks/use-favorite-restaurants';
+
+import "./map.css";
+
 interface LatLng {
     lat: number;
     lng: number;
@@ -42,7 +45,8 @@ const Map: React.FC<MapProps> = ({ options }) => {
     const [markers, setMarkers] = useState<Restaurant[]>([]);
     
     const { favoriteRestaurants, addFavoriteRestaurant, removeFavoriteRestaurant, loadingFavoriteRestaurants } = useFavoriteRestaurants();
-
+    const { showToast } = useToast();
+    
     const { isLoaded: isMapLoaded, loadError: mapLoadError } = useJsApiLoader({
         googleMapsApiKey: apiKey,
         libraries: ['places'],
@@ -65,7 +69,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
                 });
             },
             (error) => {
-                console.error("Error getting user's location:", error);
+                showToast('Error getting user location', ToastType.Error);
             }
             );
         }
