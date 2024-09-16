@@ -23,7 +23,7 @@ const useRestaurant = (restaurantId: string | undefined) => {
           setError('Restaurant not found');
         }
       } catch (err) {
-        setError('Error retrieving restaurant');
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
