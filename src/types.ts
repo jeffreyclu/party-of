@@ -74,3 +74,9 @@ export enum DietaryOptions {
     Halal = 'Halal',
     Kosher = 'Kosher',
 }
+
+export enum ToastType {
+    Success = 'Success',
+    Error = 'Error',
+    Info = 'Info',
+}
