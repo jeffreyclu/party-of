@@ -1,7 +1,8 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { Restaurant } from '../types';
+import { Restaurant, ToastType } from '../types';
 import { deleteFavoriteRestaurant, getFavoriteRestaurants, saveFavoriteRestaurant } from '../firebase/restaurant-functions';
 import { useUser } from '../hooks/use-user';
+import { useToast } from '../hooks/use-toast';
 
 interface FavoriteRestaurantsContextType {
     favoriteRestaurants: Restaurant[];
@@ -16,8 +17,10 @@ export const FavoriteRestaurantsContext = createContext<FavoriteRestaurantsConte
 export const FavoriteRestaurantsProvider = ({ children }: { children: ReactNode }) => {
     const [favoriteRestaurants, setFavoriteRestaurants] = useState<Restaurant[]>([]);
     const [loadingFavoriteRestaurants, setLoadingFavoriteRestaurants] = useState<boolean>(true);
+    
     const { user, loadingUser } = useUser();
-
+    const { showToast } = useToast();
+    
     useEffect(() => {
         const fetchFavoriteRestaurants = async () => {
             try {
@@ -27,7 +30,7 @@ export const FavoriteRestaurantsProvider = ({ children }: { children: ReactNode 
                     setFavoriteRestaurants(restaurants || []);
                 }
             } catch (error) {
-                console.error('Error fetching favorite restaurants: ', error);
+                showToast((error as Error).message, ToastType.Error);
             } finally {
                 setLoadingFavoriteRestaurants(false);
             }
@@ -36,7 +39,7 @@ export const FavoriteRestaurantsProvider = ({ children }: { children: ReactNode 
         if (!loadingUser) {
             fetchFavoriteRestaurants();
         }
-    }, [user, loadingUser]);
+    }, [user, loadingUser, showToast]);
 
     const addFavoriteRestaurant = async (restaurant: Restaurant) => {
         if (user) {
