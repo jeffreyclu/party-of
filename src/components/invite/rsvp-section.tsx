@@ -6,7 +6,7 @@ interface RsvpSectionProps {
     invite: { status: InviteStatus };
     user: User;
     changingRsvp: boolean;
-    handleRsvp: (status: InviteStatus) => Promise<void>;
+    handleRsvp: (status: InviteStatus, includeDietaryRestrictions: boolean) => Promise<void>;
     loading: boolean;
     setChangingRsvp: (changing: boolean) => void;
 }
