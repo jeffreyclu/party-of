@@ -1,10 +1,10 @@
 import { doc, setDoc, updateDoc, Timestamp, collection, getDocs, getDoc, query, where } from 'firebase/firestore';
 import { db } from '.';  // Your Firebase setup
-import { EventType, Invite, InviteStatus } from '../types';
+import { DietaryOptions, EventType, Invite, InviteStatus } from '../types';
 
 
 
-export const createInvite = async (senderId: string, eventDate: Date, eventType: EventType) => {
+export const createInvite = async (senderId: string, eventDate: Date, eventType: EventType, senderDietaryRestrictions: DietaryOptions[]): Promise<string> => {
     const inviteId = `${senderId}_${eventDate.getTime()}`;
 
     // Fetch the sender's favorite restaurants
@@ -12,13 +12,14 @@ export const createInvite = async (senderId: string, eventDate: Date, eventType:
     const senderFavoritesSnap = await getDocs(senderFavoritesRef);
     const senderFavorites = senderFavoritesSnap.docs.map(doc => doc.data().restaurantId);
 
-    const invite: Omit<Invite, "recipientId" | "recipientFavorites" | "suggestedRestaurants"> = {
+    const invite: Omit<Invite, "recipientId" | "recipientFavorites" | "suggestedRestaurants" | "recipientDietaryRestrictions"> = {
         id: inviteId,
         senderId,
         eventDate: Timestamp.fromDate(eventDate),
         eventType,
         status: InviteStatus.Pending,
         senderFavorites,
+        senderDietaryRestrictions
     };
 
     await setDoc(doc(db, 'invites', inviteId), invite);
@@ -26,7 +27,21 @@ export const createInvite = async (senderId: string, eventDate: Date, eventType:
     return inviteId;
 };
 
-export const respondToInvite = async (inviteId: string, recipientId: string, status: InviteStatus) => {
+export const updateInvite = async (inviteId: string, updates: Partial<Invite>) => {
+    const inviteRef = doc(db, 'invites', inviteId);
+
+    // Fetch the existing invite document
+    const inviteDoc = await getDoc(inviteRef);
+    if (!inviteDoc.exists()) {
+        throw new Error('Invite not found');
+    }
+
+    // Update the invite document with the provided updates
+    await updateDoc(inviteRef, updates);
+    console.log('Invite updated');
+};
+
+export const respondToInvite = async (inviteId: string, recipientId: string, status: InviteStatus, recipientDietaryRestrictions: DietaryOptions[]) => {
     const inviteRef = doc(db, 'invites', inviteId);
     
     // Fetch the invite document to get the favorite restaurant ids
@@ -46,6 +61,7 @@ export const respondToInvite = async (inviteId: string, recipientId: string, sta
         recipientId,
         status: status,
         recipientFavorites,
+        recipientDietaryRestrictions,
     });
     console.log(`Invite ${status}`);
 
@@ -92,6 +108,10 @@ export const getInvitesByRecipient = async (userId: string) => {
     return invites;
 };
 
+// Utility function to shuffle an array
+const shuffleArray = (array: string[]) => {
+    return array.sort(() => Math.random() - 0.5);
+};
 
 // Suggest restaurant after invite acceptance
 export async function suggestRestaurants(senderFavorites: string[], recipientFavorites: string[]) {
@@ -99,11 +119,19 @@ export async function suggestRestaurants(senderFavorites: string[], recipientFav
         // Combine the favorite lists
         const combinedFavorites = [...new Set([...senderFavorites, ...recipientFavorites])];
 
-        // Shuffle the combined list randomly
-        const shuffledFavorites = combinedFavorites.sort(() => Math.random() - 0.5);
+        // Identify mutual favorites
+        const mutualFavorites = combinedFavorites.filter(id => senderFavorites.includes(id) && recipientFavorites.includes(id));
+        const nonMutualFavorites = combinedFavorites.filter(id => !mutualFavorites.includes(id));
 
-        console.log('Suggested Restaurant IDs:', shuffledFavorites);
-        return shuffledFavorites;
+        // Shuffle both lists randomly
+        const shuffledMutualFavorites = shuffleArray(mutualFavorites);
+        const shuffledNonMutualFavorites = shuffleArray(nonMutualFavorites);
+
+        // Combine mutual favorites first, followed by non-mutual favorites
+        const sortedFavorites = [...shuffledMutualFavorites, ...shuffledNonMutualFavorites];
+
+        console.log('Suggested Restaurant IDs:', sortedFavorites);
+        return sortedFavorites;
     } catch (error) {
         console.error('Error suggesting restaurants:', error);
         return [];
