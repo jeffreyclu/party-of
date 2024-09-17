@@ -7,34 +7,34 @@ import { useInvite } from '../hooks/use-invite';
 import { useUser } from '../hooks/use-user';
 import { InviteStatus, ToastType } from '../types';
 import { respondToInvite } from '../firebase/invite-functions';
-import useRestaurant from '../hooks/use-restaurant';
 import { useToast } from '../hooks/use-toast';
 
-import EventDetails from './EventDetails';
-import RsvpSection from './RsvpSection';
-import DeclinedSection from './DeclinedSection';
-import SuggestedRestaurantSection from './SuggestedRestaurantSection';
-
 import './invite.css';
+import EventDetails from '../components/invite/event-details';
+import RsvpSection from '../components/invite/rsvp-section';
+import DeclinedSection from '../components/invite/declined-section';
+import SuggestedRestaurantSection from '../components/invite/restaurant-suggestion';
+import { useUserProfile } from '../hooks/use-user-profile';
+import DietaryRestrictionsSection from '../components/invite/dietary-restrictions';
 
 export default function Invite() {
     const { invite, loadingInvite, fetchInviteById } = useInvite();
     const { inviteId } = useParams<{ inviteId: string }>();
-    const { user } = useUser();
+    const { user, loadingUser } = useUser();
+    const { userProfileData, loadingUserProfileData } = useUserProfile();
     const { showToast } = useToast();
 
     const [hasFetchedInvite, setHasFetchedInvite] = useState(false);
     const [loading, setLoading] = useState(false);
     const [changingRsvp, setChangingRsvp] = useState(false);
-    const [suggestedRestaurantId, setSuggestedRestaurantId] = useState<string | undefined>(undefined);
+    const [suggestedRestaurants, setSuggestedRestaurants] = useState<string[]>([]);
+
 
     useEffect(() => {
         if (invite && invite.suggestedRestaurants && invite.suggestedRestaurants.length > 0) {
-            setSuggestedRestaurantId(invite.suggestedRestaurants[0]);
+            setSuggestedRestaurants(invite.suggestedRestaurants);
         }
     }, [invite]);
-
-    const { restaurant, loading: restaurantLoading, error: restaurantError } = useRestaurant(suggestedRestaurantId);
 
     useEffect(() => {
         const fetchInvite = async () => {
@@ -47,7 +47,7 @@ export default function Invite() {
         fetchInvite();
     }, [inviteId, fetchInviteById, hasFetchedInvite]);
 
-    if (loadingInvite || !user || restaurantLoading) {
+    if (loadingInvite || !user || loadingUser || !userProfileData || loadingUserProfileData) {
         return <Loading />;
     }
 
@@ -59,10 +59,11 @@ export default function Invite() {
         return user.uid === invite.senderId;
     }
 
-    const handleRsvp = async (status: InviteStatus) => {
+    const handleRsvp = async (status: InviteStatus, includeDietaryRestrictions: boolean) => {
         setLoading(true);
         try {
-            await respondToInvite(invite.id, user.uid, status);
+            const dietaryRestrictions = includeDietaryRestrictions ? userProfileData.dietaryRestrictions : [];
+            await respondToInvite(invite.id, user.uid, status, dietaryRestrictions);
             showToast('RSVP updated successfully!', ToastType.Success);
             setTimeout(() => {
                 window.location.reload();
@@ -89,13 +90,17 @@ export default function Invite() {
             {isUserHost() && invite.status === InviteStatus.Declined && (
                 <DeclinedSection />
             )}
-            {invite.status === InviteStatus.Accepted && suggestedRestaurantId && (
-                <SuggestedRestaurantSection 
-                    restaurant={restaurant} 
-                    restaurantLoading={restaurantLoading} 
-                    restaurantError={restaurantError} 
+            {invite.status === InviteStatus.Accepted && (
+                <SuggestedRestaurantSection
+                    suggestedRestaurants={suggestedRestaurants}
                 />
-            )}
+            )}             
+            {invite.status === InviteStatus.Accepted && (invite.senderDietaryRestrictions.length > 0 || invite.recipientDietaryRestrictions.length > 0) && (<DietaryRestrictionsSection
+                senderDietaryRestrictions={invite.senderDietaryRestrictions}
+                recipientDietaryRestrictions={invite.recipientDietaryRestrictions}
+                isHost={isUserHost()}
+            />)}
+
         </div>
     );
 }
