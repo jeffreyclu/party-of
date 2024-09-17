@@ -14,8 +14,12 @@
 
 .favorite-card {
     flex: 0 0 auto;
-    width: 15rem;
-    height: 12rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-width: 16rem;
+    height: 10rem;
     padding: 20px;
     background-color: #fff;
     border: 1px solid #ddd;
@@ -37,4 +41,7 @@
 .favorite-card p {
     font-size: 1.1em;
     color: #666;
+    max-width: 15rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
