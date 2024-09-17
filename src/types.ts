@@ -33,6 +33,8 @@ export interface Invite {
     senderFavorites: Restaurant["id"][];
     recipientFavorites: Restaurant["id"][];
     suggestedRestaurants: Restaurant["id"][];
+    senderDietaryRestrictions: DietaryOptions[];
+    recipientDietaryRestrictions: DietaryOptions[];
 }
 
 export enum InviteStatus {

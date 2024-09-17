@@ -1,15 +1,19 @@
 import { useState } from 'react';
 
-import { createInvite } from '../firebase/invite-functions';
 import Loading from '../components/loading';
 import { useUser } from '../hooks/use-user';
 import { EventType, ToastType } from '../types';
 import { useToast } from '../hooks/use-toast';
+import { useUserProfile } from '../hooks/use-user-profile';
 
 import './create-invite.css';
+import { useInvite } from '../hooks/use-invite';
+import { Link } from 'react-router-dom';
 
 const CreateInvite: React.FC = () => {
-    const { user } = useUser();
+    const { user, loadingUser } = useUser();
+    const { userProfileData, loadingUserProfileData } = useUserProfile();
+    const { createInvite } = useInvite();
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
     const formattedTime = today.toTimeString().split(' ')[0].slice(0, 5);
@@ -17,10 +21,11 @@ const CreateInvite: React.FC = () => {
     const [eventDate, setEventDate] = useState<string>(formattedDate);
     const [eventTime, setEventTime] = useState<string>(formattedTime);
     const [eventType, setEventType] = useState<EventType>(EventType.Lunch);
+    const [includeDietaryRestrictions, setIncludeDietaryRestrictions] = useState(true);
 
     const { showToast } = useToast();
 
-    if (!user) {
+    if (!user || loadingUser || loadingUserProfileData || !userProfileData) {
         return <Loading />;
     }
 
@@ -37,9 +42,11 @@ const CreateInvite: React.FC = () => {
         }
         try {
             const dateTime = new Date(`${eventDate}T${eventTime}`);
-            const inviteId = await createInvite(user.uid, dateTime, eventType);
-            showToast('Invite created successfully!', ToastType.Success);
-            window.location.href = `/invite/${inviteId}`;
+            const dietaryRestrictions = includeDietaryRestrictions ? userProfileData.dietaryRestrictions : [];
+            const inviteId = await createInvite(user.uid, dateTime, eventType, dietaryRestrictions);
+            if (inviteId) {
+                window.location.href = `/invite/${inviteId}`;
+            }
         } catch (error) {
             showToast((error as Error).message, ToastType.Error);
         }
@@ -85,6 +92,16 @@ const CreateInvite: React.FC = () => {
                         </option>
                     ))}
                 </select>
+            </div>
+            <div className="form-group">
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={includeDietaryRestrictions}
+                        onChange={(e) => setIncludeDietaryRestrictions(e.target.checked)}
+                    />
+                    Include <Link to="/profile">dietary restrictions</Link>
+                </label>
             </div>
             <button type="submit" className="submit-button">Create Invite</button>
         </form>

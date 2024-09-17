@@ -3,12 +3,12 @@ import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api'
 
 import MapMarker from './map-marker';
 import MapPanel from './map-panel';
-import { Restaurant, ToastType } from '../types';
-import Loading from './loading';
-import NotFound from '../pages/404';
+import { Restaurant, ToastType } from '../../types';
+import Loading from '../loading';
+import NotFound from '../../pages/404';
 import { serverTimestamp } from 'firebase/firestore';
-import { useToast } from '../hooks/use-toast';
-import { useFavoriteRestaurants } from '../hooks/use-favorite-restaurants';
+import { useToast } from '../../hooks/use-toast';
+import { useFavoriteRestaurants } from '../../hooks/use-favorite-restaurants';
 
 import "./map.css";
 

@@ -1,38 +1,34 @@
 import { useState, useEffect } from 'react';
 import { Restaurant } from '../types';
-import { getRestaurantById } from '../firebase/restaurant-functions';
+import { getRestaurantsById } from '../firebase/restaurant-functions';
 
-const useRestaurant = (restaurantId: string | undefined) => {
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+const useRestaurants = (restaurantIds: string[]) => {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchRestaurant = async () => {
-      if (!restaurantId) {
+    const fetchRestaurants = async () => {
+      if (restaurantIds.length === 0) {
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        const restaurantData = await getRestaurantById(restaurantId);
-        if (restaurantData) {
-          setRestaurant(restaurantData);
-        } else {
-          setError('Restaurant not found');
-        }
+        const fetchedRestaurants = await getRestaurantsById(restaurantIds);
+        setRestaurants(fetchedRestaurants);
       } catch (err) {
-        setError('Error retrieving restaurant');
+        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRestaurant();
-  }, [restaurantId]);
+    fetchRestaurants();
+  }, [restaurantIds]);
 
-  return { restaurant, loading, error };
+  return { restaurants, loading, error };
 };
 
-export default useRestaurant;
+export default useRestaurants;
