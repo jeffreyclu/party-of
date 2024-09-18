@@ -1,6 +1,6 @@
-import React from 'react';
-import './map-panel.css';
 import { Restaurant } from '../../types';
+
+import './map-panel.css';
 
 interface MapPanelProps {
     restaurant: Restaurant;
