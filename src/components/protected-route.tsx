@@ -11,7 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component })
     const { user, loadingUser } = useUser();
 
     if (loadingUser) {
-        return <Loading />; // You can replace this with a proper loading indicator
+        return <Loading />;
     }
 
     return user ? <Component /> : <Navigate to="/login" />;
