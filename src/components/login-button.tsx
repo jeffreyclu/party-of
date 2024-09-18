@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLogin } from '../hooks/use-login';
 
 const LoginButton: React.FC = () => {
