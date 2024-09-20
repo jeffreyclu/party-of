@@ -22,8 +22,8 @@ const containerStyle = {
     height: '70vh',
 };
 
-const defaultCenter: LatLng = {
-    lat: 40.730610, // Default center (New York City)
+const defaultLocation: LatLng = {
+    lat: 40.730610, // New York City
     lng: -73.935242,
 };
 
@@ -40,7 +40,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
     const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
     const mapRef = useRef<google.maps.Map | null>(null);
     const [activeRestaurant, setActiveRestaurant] = useState<Restaurant | null>(null);
-    const [currentLocation, setCurrentLocation] = useState<google.maps.LatLngLiteral | null>(null);
+    const [currentLocation, setCurrentLocation] = useState<google.maps.LatLngLiteral>(defaultLocation);
     const [markers, setMarkers] = useState<Restaurant[]>([]);
     
     const { favoriteRestaurants, addFavoriteRestaurant, removeFavoriteRestaurant, loadingFavoriteRestaurants } = useFavoriteRestaurants();
@@ -70,7 +70,20 @@ const Map: React.FC<MapProps> = ({ options }) => {
                     showToast('Centering map on your location', ToastType.Success);
                 },
                 (error) => {
-                    showToast(error.message, ToastType.Error);
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            showToast('User denied the request for Geolocation.', ToastType.Error);
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            showToast('Location information is unavailable.', ToastType.Error);
+                            break;
+                        case error.TIMEOUT:
+                            showToast('The request to get user location timed out.', ToastType.Error);
+                            break;
+                        default:
+                            showToast('An unknown error occurred while fetching location.', ToastType.Error);
+                            break;
+                    }
                 },
                 {
                     timeout: 5000, // Set a timeout of 5 seconds
@@ -87,6 +100,16 @@ const Map: React.FC<MapProps> = ({ options }) => {
             mapRef.current.panTo(currentLocation);
         }
     }, [currentLocation, isMapLoaded]);
+
+    // set the center of the map to the active restaurant
+    useEffect(() => {
+        if (activeRestaurant) {
+            setCurrentLocation({
+                lat: activeRestaurant.lat,
+                lng: activeRestaurant.lng,
+            });
+        }
+    }, [activeRestaurant]);
 
     const handlePlaceSelected = () => {
         const place = autocompleteRef.current?.getPlace();
@@ -152,7 +175,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
 
             <GoogleMap
                 mapContainerStyle={containerStyle}
-                center={activeRestaurant && {lat: activeRestaurant.lat, lng: activeRestaurant.lng} || currentLocation || defaultCenter}
+                center={currentLocation}
                 zoom={12}
                 onLoad={(map) => {mapRef.current = map}}
                 clickableIcons={false}
