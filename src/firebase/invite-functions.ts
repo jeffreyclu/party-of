@@ -1,10 +1,15 @@
 import { doc, setDoc, updateDoc, Timestamp, collection, getDocs, getDoc, query, where } from 'firebase/firestore';
-import { db } from '.';  // Your Firebase setup
-import { DietaryOptions, EventType, Invite, InviteStatus } from '../types';
 
+import { db } from '.';
+import { DietaryOptions, EventType, Invite, InviteStatus, Restaurant } from '../types';
 
-
-export const createInvite = async (senderId: string, eventDate: Date, eventType: EventType, senderDietaryRestrictions: DietaryOptions[]): Promise<string> => {
+export const createInvite = async (
+    senderId: string, 
+    eventDate: Date, 
+    eventType: EventType, 
+    senderDietaryRestrictions: DietaryOptions[],
+    initialSuggestion?: Restaurant
+): Promise<string> => {
     const inviteId = `${senderId}_${eventDate.getTime()}`;
 
     // Fetch the sender's favorite restaurants
@@ -19,7 +24,11 @@ export const createInvite = async (senderId: string, eventDate: Date, eventType:
         eventType,
         status: InviteStatus.Pending,
         senderFavorites,
-        senderDietaryRestrictions
+        senderDietaryRestrictions,
+        senderAccepted: initialSuggestion ? true : false,
+        recipientAccepted: false,
+        ...(initialSuggestion && { initialSuggestion: initialSuggestion.id }),
+        lastModifiedBy: senderId,
     };
 
     await setDoc(doc(db, 'invites', inviteId), invite);
@@ -27,7 +36,7 @@ export const createInvite = async (senderId: string, eventDate: Date, eventType:
     return inviteId;
 };
 
-export const updateInvite = async (inviteId: string, updates: Partial<Invite>) => {
+export const updateInvite = async (inviteId: string, updates: Partial<Invite>, userId: string) => {
     const inviteRef = doc(db, 'invites', inviteId);
 
     // Fetch the existing invite document
@@ -37,7 +46,7 @@ export const updateInvite = async (inviteId: string, updates: Partial<Invite>) =
     }
 
     // Update the invite document with the provided updates
-    await updateDoc(inviteRef, updates);
+    await updateDoc(inviteRef, {...updates, lastModifiedBy: userId});
     console.log('Invite updated');
 };
 
@@ -68,7 +77,7 @@ export const respondToInvite = async (inviteId: string, recipientId: string, sta
     // If the status is accepted, suggest restaurants and update the invite
     if (status === InviteStatus.Accepted) {
         // Suggest restaurants based on both sender's and recipient's favorites
-        const suggestedRestaurants = await suggestRestaurants(senderFavorites, recipientFavorites);
+        const suggestedRestaurants = await suggestRestaurants(senderFavorites, recipientFavorites, inviteData.initialSuggestion);
         await updateDoc(inviteRef, {
             suggestedRestaurants,
         });
@@ -114,7 +123,7 @@ const shuffleArray = (array: string[]) => {
 };
 
 // Suggest restaurant after invite acceptance
-export async function suggestRestaurants(senderFavorites: string[], recipientFavorites: string[]) {
+export async function suggestRestaurants(senderFavorites: string[], recipientFavorites: string[], initialSuggestion?: string) {
     try {
         // Combine the favorite lists
         const combinedFavorites = [...new Set([...senderFavorites, ...recipientFavorites])];
@@ -128,7 +137,12 @@ export async function suggestRestaurants(senderFavorites: string[], recipientFav
         const shuffledNonMutualFavorites = shuffleArray(nonMutualFavorites);
 
         // Combine mutual favorites first, followed by non-mutual favorites
-        const sortedFavorites = [...shuffledMutualFavorites, ...shuffledNonMutualFavorites];
+        let sortedFavorites = [...shuffledMutualFavorites, ...shuffledNonMutualFavorites];
+
+         // Ensure initialSuggestion is the first item if it exists
+        if (initialSuggestion) {
+            sortedFavorites = [initialSuggestion, ...sortedFavorites.filter(id => id !== initialSuggestion)];
+        }
 
         console.log('Suggested Restaurant IDs:', sortedFavorites);
         return sortedFavorites;
