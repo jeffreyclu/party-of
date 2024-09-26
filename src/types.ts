@@ -33,8 +33,12 @@ export interface Invite {
     senderFavorites: Restaurant["id"][];
     recipientFavorites: Restaurant["id"][];
     suggestedRestaurants: Restaurant["id"][];
+    initialSuggestion?: Restaurant["id"];
+    senderAccepted: boolean;
+    recipientAccepted: boolean;
     senderDietaryRestrictions: DietaryOptions[];
     recipientDietaryRestrictions: DietaryOptions[];
+    lastModifiedBy: string;
 }
 
 export enum InviteStatus {
@@ -46,8 +50,9 @@ export enum InviteStatus {
 export enum EventType {
     Lunch = 'Lunch',
     Dinner = 'Dinner',
+    Breakfast = 'Breakfast',
     Drinks = 'Drinks',
-    Other = 'Other',
+    HangOut = 'Hang Out',
 }
 
 export enum DietaryOptions {
@@ -87,4 +92,24 @@ export interface ToastMessage {
     message: string;
     type: ToastType;
     duration: number;
+}
+
+export interface InviteNotification {
+    id: string;
+    inviteId: string;
+    inviteDate: Timestamp;
+    inviteType: EventType;
+    inviteStatus: InviteStatus;
+    userId: string;
+    type: InviteNotificationType;
+    message: string;
+    timestamp: FirebaseFirestore.FieldValue
+    read: boolean;
+}
+
+export enum InviteNotificationType {
+    'RSVP_CHANGED' = 'RSVP_CHANGED',
+    'RESTAURANT_SUGGESTION_UPDATE' = 'RESTAURANT_SUGGESTION_UPDATE',
+    'SUGGESTED_RESTAURANT_ACCEPTED_BY_SENDER' = 'SUGGESTED_RESTAURANT_ACCEPTED_BY_SENDER',
+    'SUGGESTED_RESTAURANT_ACCEPTED_BY_RECIPIENT' = 'SUGGESTED_RESTAURANT_ACCEPTED_BY_RECIPIENT',
 }
