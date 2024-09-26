@@ -78,7 +78,7 @@ export const Events: React.FC<EventsProps> = ({ host }) => {
             ) : (
                 <>
                     <p>No events found.</p>
-                    <Link to={host ? '/invite/create' : '/invites/hosting'}>Add an event</Link>
+                    <Link to={'/invite/create'}>Add an event</Link>
                 </>
             )}
         </div>
