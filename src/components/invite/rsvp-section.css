@@ -1,0 +1,20 @@
+.rsvp-section {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.rsvp-section h2 {
+    font-size: 1.5em;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.rsvp-section {
+    margin-bottom: 1rem;
+}
+
+.rsvp-section .form-group {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+}

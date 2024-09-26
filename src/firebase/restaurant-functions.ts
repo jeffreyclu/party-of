@@ -1,4 +1,4 @@
-import { doc, collection, getDocFromServer, getDocsFromServer, serverTimestamp, deleteDoc, setDoc } from 'firebase/firestore';
+import { doc, collection, getDocFromServer, getDocsFromServer, serverTimestamp, deleteDoc, setDoc, query, where } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 import { db } from './index';
 import { Favorite, Restaurant } from '../types';
@@ -48,16 +48,31 @@ export const saveFavoriteRestaurant = async (user: User, restaurant: Omit<Restau
 // Delete a favorite restaurant from Firestore for a specific user
 export const deleteFavoriteRestaurant = async (user: User, restaurantId: string) => {
   try {
-    const restaurantRef = doc(db, 'users', user.uid, 'favorites', restaurantId);
-    await deleteDoc(restaurantRef);
-    console.log(`Restaurant with ID ${restaurantId} removed from favorites`);
+    const favoritesRef = collection(db, 'users', user.uid, 'favorites');
+    const q = query(favoritesRef, where('restaurantId', '==', restaurantId));
+    console.log(`Attempting to find favorite with restaurant ID ${restaurantId} for user ${user.uid}`);
+    
+    const querySnapshot = await getDocsFromServer(q);
+    if (querySnapshot.empty) {
+      console.error(`No favorite found with restaurant ID ${restaurantId} for user ${user.uid}`);
+      return;
+    }
+
+    // Assuming there is only one favorite with the given restaurantId
+    const favoriteDoc = querySnapshot.docs[0];
+    const favoriteId = favoriteDoc.id;
+    console.log(`Found favorite with ID ${favoriteId} for restaurant ID ${restaurantId}`);
+
+    const favoriteRef = doc(db, 'users', user.uid, 'favorites', favoriteId);
+    await deleteDoc(favoriteRef);
+    console.log(`Favorite with ID ${favoriteId} removed from favorites`);
 
     // Verify deletion
-    const docSnap = await getDocFromServer(restaurantRef);
-    if (!docSnap.exists()) {
-      console.log(`Restaurant with ID ${restaurantId} successfully deleted`);
+    const docSnapAfter = await getDocFromServer(favoriteRef);
+    if (!docSnapAfter.exists()) {
+      console.log(`Favorite with ID ${favoriteId} successfully deleted`);
     } else {
-      console.error(`Failed to delete restaurant with ID ${restaurantId}`);
+      console.error(`Failed to delete favorite with ID ${favoriteId}`);
     }
   } catch (error) {
     console.error('Error removing favorite restaurant: ', error);

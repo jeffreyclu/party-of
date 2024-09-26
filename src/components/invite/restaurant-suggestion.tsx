@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { User } from "firebase/auth";
+
 import useRestaurants from "../../hooks/use-restaurant";
 import { useToast } from "../../hooks/use-toast";
 import { Restaurant, ToastType } from "../../types";
@@ -6,11 +8,14 @@ import Loading from "../loading";
 import RestaurantCard from "../restaurant-card";
 import { useInvite } from "../../hooks/use-invite";
 
-interface SuggestedRestaurantSectionProps {
+import './restaurant-suggestion.css';
+
+interface RestaurantSuggestionProps {
     suggestedRestaurants: string[];
+    user: User
 }
 
-const SuggestedRestaurantSection: React.FC<SuggestedRestaurantSectionProps> = ({ suggestedRestaurants }) => {
+const RestaurantSuggestion: React.FC<RestaurantSuggestionProps> = ({ suggestedRestaurants, user }) => {
     const { restaurants, loading, error } = useRestaurants(suggestedRestaurants);
     const { showToast } = useToast();
     const { invite, loadingInvite, updateInvite } = useInvite();
@@ -36,6 +41,9 @@ const SuggestedRestaurantSection: React.FC<SuggestedRestaurantSectionProps> = ({
     if (loading || loadingInvite || !invite) {
         return <Loading />;
     }
+
+    const isUserSender = () => user.uid === invite.senderId;
+    const isUserRecipient = () => user.uid === invite.recipientId;
 
     const handleShowMoreClick = () => {
         setShowMore(!showMore);
@@ -70,11 +78,20 @@ const SuggestedRestaurantSection: React.FC<SuggestedRestaurantSectionProps> = ({
         // Extract the IDs from the updated restaurants array
         const updatedRestaurantIds = updatedRestaurants.map(restaurant => restaurant.id);
 
+        // Determine the acceptance state based on the current user
+        const updateData = {
+            suggestedRestaurants: updatedRestaurantIds,
+            senderAccepted: isUserSender() ? true : false,
+            recipientAccepted: isUserRecipient() ? true : false,
+        };
+
         // Call updateInvite with the updated array of restaurant IDs
-        updateInvite(invite?.id, { suggestedRestaurants: updatedRestaurantIds });
+        updateInvite(invite?.id, updateData, user.uid);
 
         // Clear the pending state
         setPendingSuggestedRestaurant(null);
+
+        setShowMore(false);
     };
 
     const handleCancelClick = () => {
@@ -84,43 +101,77 @@ const SuggestedRestaurantSection: React.FC<SuggestedRestaurantSectionProps> = ({
         setPendingSuggestedRestaurant(null);
     };
 
+    const handleAcceptSuggestionClick = async () => {
+        if (isUserRecipient()) {
+            await updateInvite(invite.id, { recipientAccepted: true }, user.uid);
+        } else if (isUserSender()) {
+            await updateInvite(invite.id, { senderAccepted: true }, user.uid);
+        }
+        setPendingSuggestedRestaurant(null);
+        setShowMore(false);
+    };
+
+    const shouldShowAcceptButton = () => {
+        if (isUserRecipient() && !invite.recipientAccepted) {
+            return true;
+        }
+        if (isUserSender() && !invite.senderAccepted) {
+            return true;
+        }
+        return false;
+    };
+
+    // TODO: suggested restaurants should update when either user adds more favorites
+
     return (
-        <div className="suggested-restaurant-section">
-            <h2>Suggested Restaurant:</h2>
-            {suggestedRestaurant && (
-                <RestaurantCard
-                    restaurant={suggestedRestaurant}
-                />
-            )}
-            <div className="more-restaurants-container">
-                {
-                    showMore && (
-                        <>
-                            <h3>Other suggestions:</h3>
-                            {updatedRestaurants.slice(1).map((restaurant, index) => (
-                                <RestaurantCard
-                                    key={index}
-                                    restaurant={restaurant}
-                                    onClick={() => handleRestaurantClick(restaurant)}
-                                />
-                            ))}
-                        </>
-                    )
-                }
+        <>
+            <div className="suggested-restaurant-section">
+                <h2>Suggested Restaurant:</h2>
+                {suggestedRestaurant && (
+                    <RestaurantCard
+                        restaurant={suggestedRestaurant}
+                        isSelected={!pendingSuggestedRestaurant && invite.recipientAccepted && invite.senderAccepted}
+                    />
+                )}
+                {(pendingSuggestedRestaurant || shouldShowAcceptButton()) && (
+                    <div className="pending-actions">
+                        {shouldShowAcceptButton() && (
+                            <button
+                                style={{ backgroundColor: 'green', color: 'white' }}
+                                onClick={handleAcceptSuggestionClick}
+                            >
+                                Accept Suggestion
+                            </button>
+                        )}
+                        {pendingSuggestedRestaurant && (
+                            <div>
+                                <button onClick={handleSaveClick}>Save suggestion</button>
+                                <button onClick={handleCancelClick}>Cancel</button>
+                            </div>
+                        )}
+                        
+                    </div>
+                )}
             </div>
+            {showMore && <div className="more-restaurants-container">
+                {updatedRestaurants.slice(1).map((restaurant, index) => (
+                    <RestaurantCard
+                        key={index}
+                        restaurant={restaurant}
+                        onClick={() => handleRestaurantClick(restaurant)}
+                        isSelected={false} // we don't show the selected restaurant in the list
+                    />
+                ))}
+            </div>}
             {restaurants.length > 1 && (
-                <span style={{ color: 'blue', cursor: 'pointer' }} onClick={handleShowMoreClick}>
-                    {showMore ? 'Show Less' : 'Show More'}
-                </span>
-            )}
-            {pendingSuggestedRestaurant && (
-                <div className="pending-actions">
-                    <button onClick={handleSaveClick}>Save Suggestion</button>
-                    <button onClick={handleCancelClick}>Cancel</button>
+                <div className="show-more-restaurants-container">
+                    <span style={{ color: 'blue', cursor: 'pointer' }} onClick={handleShowMoreClick}>
+                        {showMore ? 'Hide' : 'Suggest another restaurant'}
+                    </span>
                 </div>
             )}
-        </div>
+        </>
     );
 }
 
-export default SuggestedRestaurantSection;
+export default RestaurantSuggestion;

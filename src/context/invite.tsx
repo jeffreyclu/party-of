@@ -1,17 +1,26 @@
 import { createContext, useState, ReactNode } from 'react';
 
-import { createInvite as createInviteInDB, getInviteById, getInvitesByHost, getInvitesByRecipient, updateInvite as updateInviteInDB } from '../firebase/invite-functions';
-import { DietaryOptions, EventType, Invite, ToastType } from '../types';
+import { createInvite as createInviteInDB, getInvitesByHost, getInvitesByRecipient, updateInvite as updateInviteInDB } from '../firebase/invite-functions';
+import { DietaryOptions, EventType, Invite, Restaurant, ToastType } from '../types';
 import { useToast } from '../hooks/use-toast';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
+import { Unsubscribe } from 'firebase/auth';
 
 interface InviteContextType {
-    createInvite: (senderId: string, eventDate: Date, eventType: EventType, dietaryRestrictions: DietaryOptions[]) => Promise<string | undefined>;
-    updateInvite: (inviteId: string, updates: Partial<Invite>) => Promise<void>;
+    createInvite: (
+        senderId: string, 
+        eventDate: Date, 
+        eventType: EventType, 
+        dietaryRestrictions: DietaryOptions[], 
+        initialSuggestion?: Restaurant
+    ) => Promise<string | undefined>;
+    updateInvite: (inviteId: string, updates: Partial<Invite>, userId: string) => Promise<void>;
     invite: Invite | null;
     loadingInvite: boolean;
     loadingHostInvites: boolean;
     loadingRecipientInvites: boolean;
-    fetchInviteById: (inviteId: string) => Promise<void>;
+    fetchInviteById: (inviteId: string) => Unsubscribe | undefined;
     hostInvites: Invite[];
     recipientInvites: Invite[];
     fetchHostInvites: (userId: string) => Promise<void>;
@@ -30,7 +39,7 @@ export const InviteProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     const { showToast } = useToast();
 
-    const fetchInviteById = async (inviteId: string) => {
+    const fetchInviteById = (inviteId: string) => {
         setLoadingInvite(true);
         if (!inviteId) {
             showToast('No invite ID provided', ToastType.Error);
@@ -40,12 +49,25 @@ export const InviteProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
 
         try {
-            const inviteData = await getInviteById(inviteId);
-            setInvite(inviteData as Invite);
+            const inviteDocRef = doc(db, 'invites', inviteId);
+            const unsubscribe = onSnapshot(inviteDocRef, (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    setInvite(docSnapshot.data() as Invite);
+                } else {
+                    showToast('Invite not found', ToastType.Error);
+                    setInvite(null);
+                }
+                setLoadingInvite(false);
+            }, (error) => {
+                showToast(error.message, ToastType.Error);
+                setInvite(null);
+                setLoadingInvite(false);
+            });
+
+            return unsubscribe;
         } catch (error) {
             showToast((error as Error).message, ToastType.Error);
             setInvite(null);
-        } finally {
             setLoadingInvite(false);
         }
     };
@@ -76,9 +98,21 @@ export const InviteProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
     };
 
-    const createInvite = async (senderId: string, eventDate: Date, eventType: EventType, senderDietaryRestrictions: DietaryOptions[]) => {
+    const createInvite = async (
+        senderId: string, 
+        eventDate: Date, 
+        eventType: EventType, 
+        senderDietaryRestrictions: DietaryOptions[],
+        initialSuggestion?: Restaurant
+    ) => {
         try {
-            const inviteId = await createInviteInDB(senderId, eventDate, eventType, senderDietaryRestrictions);
+            const inviteId = await createInviteInDB(
+                senderId, 
+                eventDate, 
+                eventType, 
+                senderDietaryRestrictions, 
+                initialSuggestion
+            );
             showToast('Invite added successfully', ToastType.Success);
             return inviteId;
         } catch (error) {
@@ -86,9 +120,9 @@ export const InviteProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
     };
 
-    const updateInvite = async (inviteId: string, updates: Partial<Invite>) => {
+    const updateInvite = async (inviteId: string, updates: Partial<Invite>, userId: string) => {
         try {
-            await updateInviteInDB(inviteId, updates);
+            await updateInviteInDB(inviteId, updates, userId);
             showToast('Invite updated successfully', ToastType.Success);
         } catch (error) {
             showToast((error as Error).message, ToastType.Error);

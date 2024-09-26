@@ -1,11 +1,11 @@
-import React from 'react';
-import { useUser } from '../hooks/use-user';
+import { useUser } from '../../hooks/use-user';
 
-import logo from '../assets/logo.svg';
+import logo from '../../assets/logo.svg';
 import './header.css';
-import { useLogout } from '../hooks/use-logout';
+import { useLogout } from '../../hooks/use-logout';
 import { Link } from 'react-router-dom';
-import LoginButton from './login-button';
+import LoginButton from '../login-button';
+import Notifications from './notifications';
 
 const Header: React.FC = () => {
     const { user, loadingUser } = useUser();
@@ -40,7 +40,8 @@ const Header: React.FC = () => {
                                     </div>
                                 </Link>
                             )}
-                            <button onClick={handleLogout}>Logout</button>
+                            <Notifications />
+                            <button className="logout-button" onClick={handleLogout}>Logout</button>
                         </div>
                     ) : <LoginButton />
                 )}
