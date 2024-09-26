@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 
+import './declined-section.css';
+
 const DeclinedSection = () => (
     <div className="declined-section">
         <h2>Sorry, the RSVP was declined.</h2>

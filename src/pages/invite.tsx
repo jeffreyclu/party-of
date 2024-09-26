@@ -8,14 +8,14 @@ import { useUser } from '../hooks/use-user';
 import { InviteStatus, ToastType } from '../types';
 import { respondToInvite } from '../firebase/invite-functions';
 import { useToast } from '../hooks/use-toast';
-
-import './invite.css';
 import EventDetails from '../components/invite/event-details';
 import RsvpSection from '../components/invite/rsvp-section';
 import DeclinedSection from '../components/invite/declined-section';
-import SuggestedRestaurantSection from '../components/invite/restaurant-suggestion';
+import RestaurantSuggestion from '../components/invite/restaurant-suggestion';
 import { useUserProfile } from '../hooks/use-user-profile';
 import DietaryRestrictionsSection from '../components/invite/dietary-restrictions';
+
+import './invite.css';
 
 export default function Invite() {
     const { invite, loadingInvite, fetchInviteById } = useInvite();
@@ -65,42 +65,46 @@ export default function Invite() {
             const dietaryRestrictions = includeDietaryRestrictions ? userProfileData.dietaryRestrictions : [];
             await respondToInvite(invite.id, user.uid, status, dietaryRestrictions);
             showToast('RSVP updated successfully!', ToastType.Success);
-            setTimeout(() => {
-                window.location.reload();
-                setLoading(false);
-            }, 1000); // Reload the page after 1 second
+            setLoading(false);
         } catch (error) {
             showToast((error as Error).message, ToastType.Error);
         }
     };
+    
+    const showRsvpSection = !isUserHost()
+    const showDeclinedSection = isUserHost() && invite.status === InviteStatus.Declined;
+    const isAccepted = invite.status === InviteStatus.Accepted;
+    const showDietaryRestrictions = isAccepted && (invite.senderDietaryRestrictions.length > 0 || invite.recipientDietaryRestrictions.length > 0);
 
     return (
         <div className="invite-container">
-            <EventDetails invite={invite} />
-            {!isUserHost() && (
+            <EventDetails invite={invite} isHost={!showRsvpSection} />
+            {showRsvpSection && (
                 <RsvpSection 
-                    invite={invite} 
-                    user={user} 
+                    invite={invite}
+                    user={userProfileData} 
                     changingRsvp={changingRsvp} 
                     handleRsvp={handleRsvp} 
                     loading={loading} 
                     setChangingRsvp={setChangingRsvp} 
                 />
             )}
-            {isUserHost() && invite.status === InviteStatus.Declined && (
+            {showDeclinedSection && (
                 <DeclinedSection />
             )}
             {invite.status === InviteStatus.Accepted && (
-                <SuggestedRestaurantSection
+                <RestaurantSuggestion
                     suggestedRestaurants={suggestedRestaurants}
+                    user={user}
                 />
             )}             
-            {invite.status === InviteStatus.Accepted && (invite.senderDietaryRestrictions.length > 0 || invite.recipientDietaryRestrictions.length > 0) && (<DietaryRestrictionsSection
-                senderDietaryRestrictions={invite.senderDietaryRestrictions}
-                recipientDietaryRestrictions={invite.recipientDietaryRestrictions}
-                isHost={isUserHost()}
-            />)}
-
+            {showDietaryRestrictions && (
+                <DietaryRestrictionsSection
+                    senderDietaryRestrictions={invite.senderDietaryRestrictions}
+                    recipientDietaryRestrictions={invite.recipientDietaryRestrictions}
+                    isHost={isUserHost()}
+                />
+            )}
         </div>
     );
 }

@@ -1,10 +1,11 @@
 import RsvpButtons from './rsvp-buttons';
-import { InviteStatus } from '../../types';
-import { User } from 'firebase/auth';
+import { InviteStatus, UserProfile } from '../../types';
+
+import "./rsvp-section.css";
 
 interface RsvpSectionProps {
     invite: { status: InviteStatus };
-    user: User;
+    user: UserProfile;
     changingRsvp: boolean;
     handleRsvp: (status: InviteStatus, includeDietaryRestrictions: boolean) => Promise<void>;
     loading: boolean;
@@ -22,7 +23,7 @@ const RsvpSection: React.FC<RsvpSectionProps> = ({ invite, user, changingRsvp, h
                 invite={invite} 
             />
         ) : (
-            <button className="rsvp-button change" onClick={() => setChangingRsvp(true)}>Change RSVP</button>
+            <button onClick={() => setChangingRsvp(true)}>Change RSVP</button>
         )}
     </div>
 );

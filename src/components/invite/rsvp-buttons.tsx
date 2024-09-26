@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { InviteStatus } from '../../types';
 import { Link } from 'react-router-dom';
+
+import { InviteStatus } from '../../types';
+
+import './rsvp-buttons.css';
 
 interface RsvpButtonsProps {
     handleRsvp: (status: InviteStatus, includeDietaryRestrictions: boolean) => void;

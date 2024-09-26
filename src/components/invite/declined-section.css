@@ -1,0 +1,21 @@
+.declined-section {
+    text-align: center;
+}
+
+.declined-section h2 {
+    font-size: 1.5rem;
+    color: darkred;
+}
+
+.create-event-link {
+    display: inline-block;
+    margin-top: 20px;
+    font-size: 1em;
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.create-event-link:hover {
+    color: #0056b3;
+}

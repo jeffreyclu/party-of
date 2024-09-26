@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { DietaryOptions } from "../../types";
 
+import "./dietary-restrictions.css";
+
 interface DietaryRestrictionsSectionProps {
     senderDietaryRestrictions: DietaryOptions[];
     recipientDietaryRestrictions: DietaryOptions[];
@@ -13,11 +15,13 @@ const DietaryRestrictionsSection: React.FC<DietaryRestrictionsSectionProps> = ({
     const formatDietaryRestrictions = (restrictions: DietaryOptions[]) => {
         return restrictions.join(', ');
     };
+
+    // TODO: dietary restrictions on the invite should update when the user updates their dietary restrictions
     
     return (
         <div className="dietary-restrictions-section">
             {showDietaryRestrictions && (
-                <>
+                <div className="dietary-restrictions-container">
                     {senderDietaryRestrictions.length > 0 && (
                         <div>
                             <span style={{ fontWeight: "bold"}}>{isHost ? "My" : "Their"} Dietary Restrictions: </span>
@@ -30,9 +34,9 @@ const DietaryRestrictionsSection: React.FC<DietaryRestrictionsSectionProps> = ({
                             <span>{formatDietaryRestrictions(recipientDietaryRestrictions)}</span>
                         </div>
                     )}
-                </>
+                </div>
             )}
-            <span style={{ color: 'blue', cursor: 'pointer' }} onClick={() => setShowDietaryRestrictions(!showDietaryRestrictions)}>
+            <span className="show-dietary-restrictions" onClick={() => setShowDietaryRestrictions(!showDietaryRestrictions)}>
                 {showDietaryRestrictions ? 'Hide Dietary Restrictions' : 'Show Dietary Restrictions'}
             </span>
         </div>
