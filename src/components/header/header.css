@@ -55,7 +55,7 @@ nav {
     margin-right: 10px;
 }
 
-button {
+.header button {
     padding: 5px 10px;
     background-color: #007bff;
     color: #fff;
@@ -64,6 +64,12 @@ button {
     cursor: pointer;
 }
 
-button:hover {
+.header button:hover {
     background-color: #0056b3;
+}
+
+.logout-button {
+    background-color: #1a1a1a !important;
+    color: white;
+    padding: 0.5em 1em !important;
 }
