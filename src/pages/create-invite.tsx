@@ -1,19 +1,21 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import Loading from '../components/loading';
 import { useUser } from '../hooks/use-user';
-import { EventType, ToastType } from '../types';
+import { EventType, Restaurant, ToastType } from '../types';
 import { useToast } from '../hooks/use-toast';
 import { useUserProfile } from '../hooks/use-user-profile';
+import { useInvite } from '../hooks/use-invite';
+import FavoritesList from '../components/favorites-list';
 
 import './create-invite.css';
-import { useInvite } from '../hooks/use-invite';
-import { Link } from 'react-router-dom';
 
 const CreateInvite: React.FC = () => {
     const { user, loadingUser } = useUser();
     const { userProfileData, loadingUserProfileData } = useUserProfile();
     const { createInvite } = useInvite();
+
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
     const formattedTime = today.toTimeString().split(' ')[0].slice(0, 5);
@@ -22,6 +24,8 @@ const CreateInvite: React.FC = () => {
     const [eventTime, setEventTime] = useState<string>(formattedTime);
     const [eventType, setEventType] = useState<EventType>(EventType.Lunch);
     const [includeDietaryRestrictions, setIncludeDietaryRestrictions] = useState(true);
+    const [attachFavoriteRestaurant, setAttachFavoriteRestaurant] = useState(false);
+    const [initialSuggestion, setInitialSuggestion] = useState<Restaurant | undefined>(undefined)
 
     const { showToast } = useToast();
 
@@ -43,7 +47,7 @@ const CreateInvite: React.FC = () => {
         try {
             const dateTime = new Date(`${eventDate}T${eventTime}`);
             const dietaryRestrictions = includeDietaryRestrictions ? userProfileData.dietaryRestrictions : [];
-            const inviteId = await createInvite(user.uid, dateTime, eventType, dietaryRestrictions);
+            const inviteId = await createInvite(user.uid, dateTime, eventType, dietaryRestrictions, initialSuggestion);
             if (inviteId) {
                 window.location.href = `/invite/${inviteId}`;
             }
@@ -103,6 +107,17 @@ const CreateInvite: React.FC = () => {
                     Include <Link to="/profile">dietary restrictions</Link>
                 </label>
             </div>
+            <div className="form-group">
+                <label>
+                    <input
+                        type="checkbox"
+                        checked={attachFavoriteRestaurant}
+                        onChange={(e) => setAttachFavoriteRestaurant(e.target.checked)}
+                    />
+                    Attach a restaurant suggestion
+                </label>
+            </div>
+            {attachFavoriteRestaurant && <FavoritesList singleRow onClick={setInitialSuggestion}/>}
             <button type="submit" className="submit-button">Create Invite</button>
         </form>
     );
