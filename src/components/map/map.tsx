@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { GoogleMap, useJsApiLoader, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Autocomplete, Libraries } from '@react-google-maps/api';
 
 import MapMarker from './map-marker';
 import MapPanel from './map-panel';
@@ -18,7 +18,7 @@ interface LatLng {
 }
 
 const containerStyle = {
-    width: '70vw',
+    width: '95vw',
     height: '70vh',
 };
 
@@ -28,6 +28,8 @@ const defaultLocation: LatLng = {
 };
 
 const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+const libraries: Libraries = ['places', 'routes'];
 
 interface MapProps {
     options?: {
@@ -48,7 +50,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
     
     const { isLoaded: isMapLoaded, loadError: mapLoadError } = useJsApiLoader({
         googleMapsApiKey: apiKey,
-        libraries: ['places'],
+        libraries: libraries,
     });
 
     useEffect(() => {
@@ -113,6 +115,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
 
     const handlePlaceSelected = () => {
         const place = autocompleteRef.current?.getPlace();
+        console.log({place})
         if (place && place.geometry && place.geometry.location) {
             const restaurant = {
                 id: place.place_id || '',
@@ -178,7 +181,21 @@ const Map: React.FC<MapProps> = ({ options }) => {
                 center={currentLocation}
                 zoom={12}
                 onLoad={(map) => {mapRef.current = map}}
-                clickableIcons={false}
+                onClick={(e: google.maps.MapMouseEvent) => {
+                    if (e.placeId && mapRef.current) {
+                        // Prevent the default info window from showing
+                        e.stop();
+
+                        const service = new google.maps.places.PlacesService(mapRef.current);
+
+                        service.getDetails({ placeId: e.placeId }, (place, status) => {
+                            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                                console.log(place);
+                            }
+                        });
+                    }
+                }}
+                clickableIcons={true}
             >
                 {
                     activeRestaurant && (
