@@ -17,14 +17,12 @@ const MapPanel: React.FC<MapPanelProps> = ({ removeRestaurant, restaurant, onClo
 
     return (
         <div className="side-panel">
-            <button className="close-button" onClick={onClose}>Close</button>
+            <button className="close-button" onClick={onClose}>❌</button>
             <h2>{restaurant.name}</h2>
             <p>{restaurant.address}</p>
-            <p>Latitude: {restaurant.lat}</p>
-            <p>Longitude: {restaurant.lng}</p>
             {isFavorite(restaurant.id) ? (
                 <button className="remove-button" onClick={() => removeRestaurant(restaurant.id)}>
-                    Remove {restaurant.name} from Favorites
+                    Remove Favorite
                 </button>
             ) : (
                 <button className="save-button" onClick={handleSave}>
