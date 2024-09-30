@@ -27,9 +27,9 @@ export default function AddFavorites () {
     }, [favoriteRestaurants]);
 
 
-    const handleContinue = () => {
+    const handleContinue = async () => {
         if (userProfileData && !userProfileData.completedIntro) {
-            updateUserProfile({ ...userProfileData, completedIntro: true });
+            await updateUserProfile({ ...userProfileData, completedIntro: true });
             window.location.href = '/dashboard';
         }
     };

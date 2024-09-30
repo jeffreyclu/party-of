@@ -15,7 +15,35 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const [loadingUser, setLoadingUser] = useState(true);
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
+        const unsubscribe = auth.onIdTokenChanged(async (user) => {
+            if (!user) {
+                setUser(null);
+                setLoadingUser(false);
+                return;
+            }
+
+            const tokenResult = await user.getIdTokenResult();
+            const authTime = tokenResult.claims.auth_time;
+
+            // Check if auth_time is defined
+            if (!authTime) {
+                console.error('auth_time is undefined');
+                return;
+            }
+
+            const authTimeMs = parseInt(authTime, 10) * 1000; // convert to milliseconds
+            const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000; // one week ago
+
+            // If the user has been logged in for over a week, log them out
+            if (authTimeMs < oneWeekAgo) {
+                auth.signOut();
+                setUser(null);
+                setLoadingUser(false);
+                return;
+            }
+
+            // Update the token to enforce one-session-per-user
+            await user.getIdToken(true);
             setUser(user);
             setLoadingUser(false);
         });

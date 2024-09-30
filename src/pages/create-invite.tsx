@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import Loading from '../components/loading';
@@ -8,6 +8,10 @@ import { useToast } from '../hooks/use-toast';
 import { useUserProfile } from '../hooks/use-user-profile';
 import { useInvite } from '../hooks/use-invite';
 import FavoritesList from '../components/favorites-list';
+import FormInputDate from '../components/form/form-input-date';
+import FormInputTime from '../components/form/form-input-time';
+import FormInputSelect from '../components/form/form-input-select';
+import FormInputCheckbox from '../components/form/form-input-checkbox';
 
 import './create-invite.css';
 
@@ -15,6 +19,7 @@ const CreateInvite: React.FC = () => {
     const { user, loadingUser } = useUser();
     const { userProfileData, loadingUserProfileData } = useUserProfile();
     const { createInvite } = useInvite();
+    const restaurantListRef = useRef<HTMLDivElement>(null);
 
     const today = new Date();
     const formattedDate = today.toISOString().split('T')[0];
@@ -28,6 +33,12 @@ const CreateInvite: React.FC = () => {
     const [initialSuggestion, setInitialSuggestion] = useState<Restaurant | undefined>(undefined)
 
     const { showToast } = useToast();
+
+    useEffect(() => {
+        if (attachFavoriteRestaurant && restaurantListRef.current) {
+            restaurantListRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    })
 
     if (!user || loadingUser || loadingUserProfileData || !userProfileData) {
         return <Loading />;
@@ -58,67 +69,64 @@ const CreateInvite: React.FC = () => {
 
     return (
         <form onSubmit={handleSubmit} className="invite-form">
+            <h1>Party of 2</h1>
             <div className="form-group">
-                <h1>Party of 2</h1>
-                <p>Let's make some memories! Fill out the details below to create your event.</p>
-                <label htmlFor="eventDate">On:</label>
-                <input
-                    type="date"
+                <FormInputDate
+                    label="On:"
                     id="eventDate"
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
                     min={formattedDate}
+                    // inline
                     required
                 />
             </div>
             <div className="form-group">
-                <label htmlFor="eventTime">At:</label>
-                <input
-                    type="time"
+                <FormInputTime 
+                    label="At:"
                     id="eventTime"
                     value={eventTime}
                     onChange={(e) => setEventTime(e.target.value)}
+                    // inline
                     required
                 />
             </div>
             <div className="form-group">
-                <label htmlFor="eventType">For:</label>
-                <select
+                <FormInputSelect
+                    label="For:"
                     id="eventType"
                     value={eventType}
                     onChange={(e) => setEventType(e.target.value as EventType)}
+                    // inline
                     required
                 >
-                    <option value="">Select an event type</option>
                     {Object.values(EventType).map((type) => (
                         <option key={type} value={type}>
                             {type.charAt(0).toUpperCase() + type.slice(1)}
                         </option>
                     ))}
-                </select>
+                </FormInputSelect>
             </div>
             <div className="form-group">
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={includeDietaryRestrictions}
-                        onChange={(e) => setIncludeDietaryRestrictions(e.target.checked)}
-                    />
-                    Include <Link to="/profile">dietary restrictions</Link>
-                </label>
+                <FormInputCheckbox
+                    checked={includeDietaryRestrictions}
+                    onChange={(e) => setIncludeDietaryRestrictions(e.target.checked)}
+                    label={<><span>Include </span><Link to="/profile">dietary restrictions</Link></>} 
+                />
             </div>
             <div className="form-group">
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={attachFavoriteRestaurant}
-                        onChange={(e) => setAttachFavoriteRestaurant(e.target.checked)}
-                    />
-                    Attach a restaurant suggestion
-                </label>
+                <FormInputCheckbox
+                    checked={attachFavoriteRestaurant}
+                    onChange={(e) => setAttachFavoriteRestaurant(e.target.checked)}
+                    label="Attach a restaurant suggestion"
+                />
             </div>
-            {attachFavoriteRestaurant && <FavoritesList singleRow onClick={setInitialSuggestion}/>}
-            <button type="submit" className="submit-button">Create Invite</button>
+            {attachFavoriteRestaurant && (
+                <div className="form-group" ref={restaurantListRef}>
+                    <FavoritesList singleRow onClick={setInitialSuggestion}/>
+                </div>
+            )}
+            <button type="submit" className="create-invite-button">Create Invite</button>
         </form>
     );
 };

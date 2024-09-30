@@ -1,13 +1,7 @@
-.profile-container {
-    margin: 0 auto;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
 .profile-form {
-    width: 100%;
+    max-width: 80vw;
+    max-height: 60vh;
+    overflow-y: auto;
     margin: 2rem auto;
     padding: 2rem;
     background-color: #f9f9f9;
@@ -18,6 +12,7 @@
 
 .profile-form-group {
     margin-bottom: 1rem;
+    /* border-bottom: 1px solid rgb(203, 203, 203); */
     text-align: left;
 }
 
@@ -25,44 +20,43 @@
     font-weight: 400;
 }
 
-.form-group label {
+.profile-form-group label {
     display: block;
     font-weight: bold;
     margin-bottom: 0 !important;
 }
 
-.form-group input[type="text"] {
+.profile-form-group input[type="text"] {
     width: 100%;
     box-sizing: border-box;
-    font-size: 1rem;
-}
-
-.checkbox-flex {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    max-height: 50vh;
-    gap: 10px;
-}
-
-
-.checkbox-group {
-    display: flex;
-    align-items: center;
+    font-size: 1.5rem;
     margin-bottom: 1rem;
 }
 
-.checkbox-label {
-    margin-left: 1rem;
-    font-weight: 400 !important;
-    font-style: normal;
+.checkbox-group {
+    column-count: 2;
+    line-height: 1.5;
+    padding: 0.5rem 0;
+}
+
+@media (min-width: 800px) {
+    .checkbox-group {
+        column-count: 3; /* 3 columns for viewports 600px and wider */
+    }
+}
+
+@media (min-width: 1200px) {
+    .checkbox-group {
+        column-count: 4; /* 4 columns for viewports 900px and wider */
+    }
 }
 
 .inline-group {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 0.1rem;
+    padding: 0;
     width: 100%;
 }
 
@@ -75,9 +69,14 @@
     margin-left: 10px;
 }
 
-.button-group {
+.profile-button-group {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 1rem;
 }
 
 .profile-container button {
@@ -104,5 +103,14 @@
 }
 
 .edit-button {
-    background-color: #ffc107;
+    color: #0000EE;
+    cursor: pointer;
+    background-color: #f9f9f9;
+    border: none;
+    text-decoration: underline;
+}
+
+.edit-button:hover {
+    background-color: #f9f9f9;
+    border: none;
 }

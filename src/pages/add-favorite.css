@@ -1,5 +1,6 @@
 .add-favorites-container {
-    max-width: 800px;
+    max-width: 100vw;
+    max-height: 80vh;
     margin: 0 auto;
     padding: 20px;
     text-align: center;
