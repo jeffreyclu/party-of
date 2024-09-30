@@ -1,14 +1,15 @@
 .invite-form {
-    max-width: 600px;
+    width: 40vw;
+    max-height: 65vh;
     margin: 0 auto;
-    padding: 20px;
+    padding: 1.5rem;
     background-color: #f9f9f9;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     font-family: 'Arial', sans-serif;
+    overflow-y: auto;
 }
-    
-
+  
 .invite-form h1 {
     text-align: center;
 }
@@ -19,38 +20,7 @@
     margin-bottom: 2rem;
 }
 
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    font-size: 1.2em;
-    margin-bottom: 1rem;
-    color: #333;
-    text-align: left;
-}
-
-.form-group input[type="text"],
-.form-group input[type="date"],
-.form-group input[type="time"],
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    font-size: 1.1em;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    border-color: #007bff;
-    outline: none;
-}
-
-
-.submit-button {
+.create-invite-button {
     width: 100%;
     padding: 15px;
     font-size: 1.2em;
@@ -62,6 +32,6 @@
     transition: background-color 0.3s;
 }
 
-.submit-button:hover {
+.create-invite-button:hover {
     background-color: #0056b3;
 }
