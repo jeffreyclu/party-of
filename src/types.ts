@@ -21,6 +21,18 @@ export interface Restaurant {
     lng: number;
     address: string;
     addedAt: FieldValue;
+    priceLevel?: number;
+    rating?: number;
+    userRatingsTotal?: number;
+    types?: string[];
+    url?: string;
+    internationalPhoneNumber?: string;
+    openingHours?: OpeningHours;
+    website?: string;
+}
+
+export interface OpeningHours {
+    weekdayText: string[];
 }
 
 export interface Invite {
@@ -55,12 +67,16 @@ export enum EventType {
     HangOut = 'Hang Out',
 }
 
-export enum DietaryOptions {
+export enum DietaryIntolerances {
+    DairyIntolerance = 'Dairy Intolerance',
+    FructoseIntolerance = 'Fructose Intolerance',
+    LactoseIntolerance = 'Lactose Intolerance',
+    GlutenIntolerance = 'Gluten Intolerance',
+}
+
+export enum DietaryAllergies {
     PeanutAllergy = 'Peanut Allergy',
     TreeNutAllergy = 'Tree Nut Allergy',
-    DairyIntolerance = 'Dairy Intolerance',
-    GlutenIntolerance = 'Gluten Intolerance',
-    CeliacDisease = 'Celiac Disease',
     ShellfishAllergy = 'Shellfish Allergy',
     SoyAllergy = 'Soy Allergy',
     EggAllergy = 'Egg Allergy',
@@ -70,9 +86,16 @@ export enum DietaryOptions {
     SesameAllergy = 'Sesame Allergy',
     LupinAllergy = 'Lupin Allergy',
     MustardAllergy = 'Mustard Allergy',
-    SulfiteSensitivity = 'Sulfite Sensitivity',
-    FructoseIntolerance = 'Fructose Intolerance',
-    LactoseIntolerance = 'Lactose Intolerance',
+}
+
+export enum DietaryMedicalConditions {
+    CeliacDisease = 'Celiac Disease',
+    Diabetes = 'Diabetes',
+    HighBloodPressure = 'High Blood Pressure',
+    HighCholesterol = 'High Cholesterol',
+}
+
+export enum DietaryPreferences {
     Vegetarian = 'Vegetarian',
     Vegan = 'Vegan',
     Pescatarian = 'Pescatarian',
@@ -81,6 +104,8 @@ export enum DietaryOptions {
     Halal = 'Halal',
     Kosher = 'Kosher',
 }
+
+export type DietaryOptions = DietaryIntolerances | DietaryAllergies | DietaryMedicalConditions | DietaryPreferences;
 
 export enum ToastType {
     Success = 'Success',
@@ -113,3 +138,5 @@ export enum InviteNotificationType {
     'SUGGESTED_RESTAURANT_ACCEPTED_BY_SENDER' = 'SUGGESTED_RESTAURANT_ACCEPTED_BY_SENDER',
     'SUGGESTED_RESTAURANT_ACCEPTED_BY_RECIPIENT' = 'SUGGESTED_RESTAURANT_ACCEPTED_BY_RECIPIENT',
 }
+
+export const GOOGLE_MAP_SEARCH_TYPES = ["cafe", "bakery", "meal_delivery", "meal_takeaway", "restaurant", "food"]

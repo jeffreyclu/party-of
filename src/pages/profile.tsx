@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Loading from '../components/loading';
 import { useUser } from '../hooks/use-user';
 import { useUserProfile } from '../hooks/use-user-profile';
-import { DietaryAllergies, DietaryIntolerances, DietaryMedicalConditions, DietaryPreferences, ToastType } from '../types';
+import { DietaryAllergies, DietaryIntolerances, DietaryMedicalConditions, DietaryOptions, DietaryPreferences, ToastType } from '../types';
 import { useToast } from '../hooks/use-toast';
 
 import './profile.css';
