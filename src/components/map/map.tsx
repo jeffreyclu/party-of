@@ -3,7 +3,7 @@ import { GoogleMap, useJsApiLoader, Autocomplete, Libraries } from '@react-googl
 
 import MapMarker from './map-marker';
 import MapPanel from './map-panel';
-import { Restaurant, ToastType } from '../../types';
+import { GOOGLE_MAP_SEARCH_TYPES, Restaurant, ToastType } from '../../types';
 import Loading from '../loading';
 import NotFound from '../../pages/404';
 import { serverTimestamp } from 'firebase/firestore';
@@ -115,7 +115,6 @@ const Map: React.FC<MapProps> = ({ options }) => {
 
     const handlePlaceSelected = () => {
         const place = autocompleteRef.current?.getPlace();
-        console.log({place})
         if (place && place.geometry && place.geometry.location) {
             const restaurant = {
                 id: place.place_id || '',
@@ -167,7 +166,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
             {options?.autoComplete && <Autocomplete
                 onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
                 onPlaceChanged={handlePlaceSelected}
-                types={["cafe", "bakery", "meal_delivery", "meal_takeaway", "restaurant"]}
+                types={GOOGLE_MAP_SEARCH_TYPES}
             >
                 <input
                     type="text"
@@ -181,16 +180,29 @@ const Map: React.FC<MapProps> = ({ options }) => {
                 center={currentLocation}
                 zoom={12}
                 onLoad={(map) => {mapRef.current = map}}
-                onClick={(e: google.maps.MapMouseEvent) => {
+                onClick={async (e: any) => {
                     if (e.placeId && mapRef.current) {
                         // Prevent the default info window from showing
                         e.stop();
 
                         const service = new google.maps.places.PlacesService(mapRef.current);
-
                         service.getDetails({ placeId: e.placeId }, (place, status) => {
-                            if (status === google.maps.places.PlacesServiceStatus.OK) {
-                                console.log(place);
+                            if (
+                                status === google.maps.places.PlacesServiceStatus.OK
+                                && place && place.geometry && place.geometry.location
+                                && place.types
+                                && place.types.some(type => GOOGLE_MAP_SEARCH_TYPES.includes(type))
+                            ) {
+                                console.log('Place:', place);
+                                const clickedPlace: Restaurant = {
+                                    id: place.place_id || '',
+                                    name: place.name || 'Unnamed Place',
+                                    lat: place.geometry.location.lat(),
+                                    lng: place.geometry.location.lng(),
+                                    address: place.formatted_address || '',
+                                    addedAt: serverTimestamp(),
+                                }
+                                setActiveRestaurant(clickedPlace);
                             }
                         });
                     }
