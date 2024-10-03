@@ -166,7 +166,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
             {options?.autoComplete && <Autocomplete
                 onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
                 onPlaceChanged={handlePlaceSelected}
-                types={GOOGLE_MAP_SEARCH_TYPES}
+                types={[GOOGLE_MAP_SEARCH_TYPES.cafe, GOOGLE_MAP_SEARCH_TYPES.bakery, GOOGLE_MAP_SEARCH_TYPES.meal_delivery, GOOGLE_MAP_SEARCH_TYPES.meal_takeaway, GOOGLE_MAP_SEARCH_TYPES.restaurant]}
             >
                 <input
                     type="text"
@@ -191,7 +191,7 @@ const Map: React.FC<MapProps> = ({ options }) => {
                                 status === google.maps.places.PlacesServiceStatus.OK
                                 && place && place.geometry && place.geometry.location
                                 && place.types
-                                && place.types.some(type => GOOGLE_MAP_SEARCH_TYPES.includes(type))
+                                && place.types.some(type => Object.keys(GOOGLE_MAP_SEARCH_TYPES).includes(type))
                             ) {
                                 console.log('Place:', place);
                                 const clickedPlace: Restaurant = {

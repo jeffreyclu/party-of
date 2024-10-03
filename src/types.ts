@@ -139,4 +139,13 @@ export enum InviteNotificationType {
     'SUGGESTED_RESTAURANT_ACCEPTED_BY_RECIPIENT' = 'SUGGESTED_RESTAURANT_ACCEPTED_BY_RECIPIENT',
 }
 
-export const GOOGLE_MAP_SEARCH_TYPES = ["cafe", "bakery", "meal_delivery", "meal_takeaway", "restaurant", "food"]
+// export const GOOGLE_MAP_SEARCH_TYPES = ["cafe", "bakery", "meal_delivery", "meal_takeaway", "restaurant", "food"]
+
+export enum GOOGLE_MAP_SEARCH_TYPES {
+    "cafe" = "cafe",
+    "bakery" = "bakery",
+    "meal_delivery" = "meal_delivery",
+    "meal_takeaway" = "meal_takeaway",
+    "restaurant" = "restaurant",
+    "food" = "food",
+}
